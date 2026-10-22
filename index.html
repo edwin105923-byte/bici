@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f17">
+<title>Bici ESP32</title>
+<style>
+:root{--bg:#0b0f17;--card:#131a26;--line:#1f2a3b;--txt:#e8eef9;--mut:#8a97ad;--a:#38bdf8;--b:#fb923c;--ok:#34d399;--bad:#f87171;--warn:#fbbf24}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#16233a,var(--bg));color:var(--txt);font:15px/1.4 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;min-height:100vh;padding:max(16px,env(safe-area-inset-top)) 16px 40px}
+.wrap{max-width:520px;margin:0 auto;display:grid;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+h1{font-size:19px;margin:0;font-weight:700}
+.st{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:13px;margin-top:2px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--bad)}
+.dot.on{background:var(--ok);animation:p 1.6s infinite}
+.dot.demo{background:var(--warn)}
+@keyframes p{0%{box-shadow:0 0 0 0 #34d39966}100%{box-shadow:0 0 0 10px transparent}}
+button{font:inherit;border:0;border-radius:12px;padding:10px 16px;font-weight:600;color:#06121f;background:var(--a);cursor:pointer}
+button.ghost{background:#1a2538;color:var(--txt);font-weight:500;padding:8px 12px;font-size:13px}
+button:active{transform:scale(.97)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.lbl{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.g{position:relative;text-align:center}
+.g svg{width:100%;max-width:210px;display:block;margin:0 auto}
+.g .val{position:absolute;left:0;right:0;top:50%;transform:translateY(-38%);}
+.g .val b{display:block;font-size:34px;font-variant-numeric:tabular-nums;line-height:1}
+.g .val span{font-size:12px;color:var(--mut)}
+.trk{stroke:#1a2538}.arc{transition:stroke-dashoffset .9s ease-out}
+.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.kv div{background:#0e1522;border-radius:12px;padding:8px 10px}
+.kv b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
+.kv span{font-size:11px;color:var(--mut)}
+canvas{width:100%;height:110px;display:block;margin-top:8px}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--mut);margin-top:4px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.horizon{width:130px;height:130px;border-radius:50%;overflow:hidden;position:relative;border:2px solid #2a3850;background:#0e1522;flex:none}
+.hz{position:absolute;left:-50%;top:-50%;width:200%;height:200%;transition:transform .9s ease-out;background:linear-gradient(#1d4e7a 50%,#5a3a1f 50%)}
+.hz::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#fff8}
+.mark{position:absolute;left:25%;right:25%;top:50%;height:3px;background:var(--warn);border-radius:2px}
+.meter{height:7px;background:#0e1522;border-radius:99px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;width:0;border-radius:99px;transition:width .5s}
+.msg{font-size:13px;color:var(--warn);display:none}
+.big2{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Bici ESP32</h1>
+      <div class="st"><span class="dot" id="dot"></span><span id="stx">Desconectado</span><span id="age"></span></div>
+    </div>
+    <button id="btn">Conectar</button>
+  </header>
+  <div class="msg" id="msg"></div>
+
+  <div class="gauges">
+    <div class="card g">
+      <div class="lbl">Velocidad</div>
+      <svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" transform="rotate(135 60 60)"/>
+      <circle class="arc" id="arcV" cx="60" cy="60" r="50" fill="none" stroke="var(--a)" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" stroke-dashoffset="235.6" transform="rotate(135 60 60)"/></svg>
+      <div class="val"><b id="vel">0.0</b><span>km/h</span></div>
+    </div>
+    <div class="card g">
+      <div class="lbl">Cadencia</div>
+      <svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" transform="rotate(135 60 60)"/>
+      <circle class="arc" id="arcC" cx="60" cy="60" r="50" fill="none" stroke="var(--b)" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" stroke-dashoffset="235.6" transform="rotate(135 60 60)"/></svg>
+      <div class="val"><b id="cad">0</b><span>rpm</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row"><span class="lbl">Recorrido</span><button class="ghost" id="rst">Reiniciar</button></div>
+    <div class="kv">
+      <div><b id="dist">0.00</b><span>km</span></div>
+      <div><b id="vmax">0.0</b><span>vel. máx (km/h)</span></div>
+      <div><b id="tmp">0.0</b><span>temp (°C)</span></div>
+    </div>
+    <canvas id="ch"></canvas>
+    <div class="legend"><span><i style="background:#38bdf8"></i>Velocidad</span><span><i style="background:#fb923c"></i>Cadencia</span></div>
+  </div>
+
+  <div class="card">
+    <div class="row"><span class="lbl">Inclinación (MPU)</span><button class="ghost" id="demo">Demo</button></div>
+    <div class="row" style="margin-top:12px;gap:16px">
+      <div class="horizon"><div class="hz" id="hz"></div><div class="mark"></div></div>
+      <div style="flex:1">
+        <div class="lbl">Pendiente</div><div class="big2" id="slope">0%</div>
+        <div class="lbl" style="margin-top:8px">Lateral</div><div class="big2" id="lean">0°</div>
+      </div>
+    </div>
+    <div class="kv">
+      <div><b id="ax">0</b><span>aX (g)</span></div>
+      <div><b id="ay">0</b><span>aY (g)</span></div>
+      <div><b id="az">0</b><span>aZ (g)</span></div>
+      <div><b id="gx">0</b><span>gX (°/s)</span></div>
+      <div><b id="gy">0</b><span>gY (°/s)</span></div>
+      <div><b id="gz">0</b><span>gZ (°/s)</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lbl">Señal analógica Hall (0–4095)</div>
+    <div class="row" style="margin-top:8px"><span>Cadencia</span><b id="a0c">0</b></div>
+    <div class="meter"><i id="mc" style="background:var(--b)"></i></div>
+    <div class="row" style="margin-top:10px"><span>Rueda</span><b id="a0r">0</b></div>
+    <div class="meter"><i id="mr" style="background:var(--a)"></i></div>
+  </div>
+</div>
+
+<script>
+const SERVICE='4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+const CHAR='beb5483e-36e1-4688-b7f5-ea07361b26a8';
+const VMAX=60, CMAX=140, N=120, ARC=235.6;
+const $=id=>document.getElementById(id);
+const dec=new TextDecoder();
+let dev=null,connected=false,demoTimer=null,lastT=0,lastRx=0,dist=0,vmax=0;
+const H={v:[],c:[]};
+
+function parse(s){
+  const o={};
+  s.split(',').forEach(p=>{const i=p.indexOf('=');if(i>0){const v=parseFloat(p.slice(i+1));if(!isNaN(v))o[p.slice(0,i).trim()]=v;}});
+  return o;
+}
+function setArc(id,val,max){$(id).style.strokeDashoffset=ARC*(1-Math.min(Math.max(val/max,0),1));}
+const f=(v,d)=>(v===undefined?'–':v.toFixed(d));
+
+function onText(s){
+  const d=parse(s);
+  if(d.vel===undefined&&d.cad===undefined)return;       // ignora "BiciESP32 lista"
+  const now=performance.now(),dt=lastT?Math.min((now-lastT)/1000,3):1;lastT=now;lastRx=now;
+  if(d.vel!==undefined){dist+=d.vel*dt/3600;vmax=Math.max(vmax,d.vel);
+    $('vel').textContent=d.vel.toFixed(1);setArc('arcV',d.vel,VMAX);
+    $('dist').textContent=dist.toFixed(2);$('vmax').textContent=vmax.toFixed(1);}
+  if(d.cad!==undefined){$('cad').textContent=d.cad.toFixed(0);setArc('arcC',d.cad,CMAX);}
+  if(d.tc!==undefined)$('tmp').textContent=d.tc.toFixed(1);
+  ['ax','ay','az'].forEach(k=>{if(d[k]!==undefined)$(k).textContent=d[k].toFixed(2);});
+  ['gx','gy','gz'].forEach(k=>{if(d[k]!==undefined)$(k).textContent=d[k].toFixed(0);});
+  if(d.ax!==undefined&&d.ay!==undefined&&d.az!==undefined){
+    const roll=Math.atan2(d.ay,d.az)*57.2958;
+    const pitch=Math.atan2(-d.ax,Math.hypot(d.ay,d.az))*57.2958;
+    $('hz').style.transform=`rotate(${-roll}deg) translateY(${pitch*1.2}px)`;
+    $('lean').textContent=roll.toFixed(0)+'°';
+    $('slope').textContent=(Math.tan(pitch/57.2958)*100).toFixed(0)+'%';
+  }
+  if(d.a0c!==undefined){$('a0c').textContent=d.a0c;$('mc').style.width=d.a0c/40.95+'%';}
+  if(d.a0r!==undefined){$('a0r').textContent=d.a0r;$('mr').style.width=d.a0r/40.95+'%';}
+  H.v.push(d.vel??0);H.c.push(d.cad??0);
+  if(H.v.length>N){H.v.shift();H.c.shift();}
+  draw();
+}
+
+function draw(){
+  const c=$('ch'),dp=devicePixelRatio||1,w=c.clientWidth*dp,h=c.clientHeight*dp;
+  if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
+  const g=c.getContext('2d');g.clearRect(0,0,w,h);
+  g.strokeStyle='#1f2a3b';g.lineWidth=dp;
+  for(let i=1;i<4;i++){g.beginPath();g.moveTo(0,h*i/4);g.lineTo(w,h*i/4);g.stroke();}
+  [[H.v,'#38bdf8',VMAX],[H.c,'#fb923c',CMAX]].forEach(([a,col,m])=>{
+    if(a.length<2)return;g.strokeStyle=col;g.lineWidth=2*dp;g.lineJoin='round';g.beginPath();
+    a.forEach((v,i)=>{const x=i/(N-1)*w,y=h-Math.min(v/m,1)*h*.92-h*.04;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();});
+}
+setInterval(()=>{ if(connected||demoTimer){const s=((performance.now()-lastRx)/1000);$('age').textContent=lastRx?` · hace ${s.toFixed(0)}s`:'';} else $('age').textContent=''; },1000);
+
+function setStatus(t,cls){$('stx').textContent=t;$('dot').className='dot '+(cls||'');}
+function warn(t){const m=$('msg');m.textContent=t;m.style.display=t?'block':'none';}
+
+async function connect(){
+  warn('');
+  if(!navigator.bluetooth){warn('Este navegador no soporta Web Bluetooth. En iPhone abre esta página con la app Bluefy.');return;}
+  try{
+    stopDemo();
+    dev=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE]}]});
+    dev.addEventListener('gattserverdisconnected',onDisc);
+    await link();
+  }catch(e){setStatus('Desconectado');if(e.name!=='NotFoundError')warn('Error: '+e.message);}
+}
+async function link(){
+  setStatus('Conectando…');
+  const srv=await dev.gatt.connect();
+  const ch=await (await srv.getPrimaryService(SERVICE)).getCharacteristic(CHAR);
+  await ch.startNotifications();
+  ch.addEventListener('characteristicvaluechanged',e=>onText(dec.decode(e.target.value)));
+  connected=true;lastT=0;setStatus('Conectado · '+(dev.name||'BiciESP32'),'on');$('btn').textContent='Desconectar';
+}
+async function onDisc(){
+  connected=false;$('btn').textContent='Conectar';setStatus('Reconectando…');
+  for(let i=0;i<5&&!connected;i++){await new Promise(r=>setTimeout(r,1500));try{await link();return;}catch(e){}}
+  setStatus('Desconectado');
+}
+function disconnect(){if(dev&&dev.gatt.connected){dev.removeEventListener('gattserverdisconnected',onDisc);dev.gatt.disconnect();}
+  connected=false;$('btn').textContent='Conectar';setStatus('Desconectado');}
+$('btn').onclick=()=>connected?disconnect():connect();
+$('rst').onclick=()=>{dist=0;vmax=0;H.v=[];H.c=[];$('dist').textContent='0.00';$('vmax').textContent='0.0';draw();};
+
+/* demo: genera el mismo texto que envía tu ESP32 */
+function stopDemo(){if(demoTimer){clearInterval(demoTimer);demoTimer=null;$('demo').textContent='Demo';setStatus('Desconectado');}}
+$('demo').onclick=()=>{
+  if(demoTimer){stopDemo();return;}
+  if(connected)disconnect();
+  setStatus('Modo demo','demo');$('demo').textContent='Parar demo';let t=0;
+  demoTimer=setInterval(()=>{t+=1;
+    const cad=Math.max(0,75+35*Math.sin(t*.35)),vel=cad*0.27+Math.random();
+    const R=Math.sin(t*.3)*.35,P=Math.cos(t*.2)*.25;
+    const s=`cad=${cad.toFixed(0)},vel=${vel.toFixed(2)},ax=${(-Math.sin(P)).toFixed(2)},ay=${(Math.sin(R)*Math.cos(P)).toFixed(2)},az=${(Math.cos(R)*Math.cos(P)).toFixed(2)},gx=${(Math.random()*4-2).toFixed(1)},gy=${(Math.random()*4-2).toFixed(1)},gz=${(Math.random()*4-2).toFixed(1)},tc=26.4,a0c=${(2000+Math.random()*900)|0},a0r=${(1800+Math.random()*1200)|0}`;
+    onText(s);},1000);
+};
+draw();
+</script>
+</body>
+</html>
