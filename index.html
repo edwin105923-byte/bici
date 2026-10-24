@@ -375,8 +375,9 @@ async function conectar() {
 
   try {
     log("Buscando " + NOMBRE_BLE + "… (acepta el aviso del navegador)");
+    // Muestra todos los dispositivos cercanos: elige BiciESP32 en la lista
     estado.dispositivo = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [SERVICE_UUID] }, { name: NOMBRE_BLE }],
+      acceptAllDevices: true,
       optionalServices: [SERVICE_UUID]
     });
     log("Dispositivo elegido: " + (estado.dispositivo.name || "sin nombre"), "ok");
