@@ -2,214 +2,386 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0f17">
-<title>Bici ESP32</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CicloCom</title>
 <style>
-:root{--bg:#0b0f17;--card:#131a26;--line:#1f2a3b;--txt:#e8eef9;--mut:#8a97ad;--a:#38bdf8;--b:#fb923c;--ok:#34d399;--bad:#f87171;--warn:#fbbf24}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#16233a,var(--bg));color:var(--txt);font:15px/1.4 -apple-system,system-ui,Segoe UI,Roboto,sans-serif;min-height:100vh;padding:max(16px,env(safe-area-inset-top)) 16px 40px}
-.wrap{max-width:520px;margin:0 auto;display:grid;gap:14px}
-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
-h1{font-size:19px;margin:0;font-weight:700}
-.st{display:flex;align-items:center;gap:7px;color:var(--mut);font-size:13px;margin-top:2px}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--bad)}
-.dot.on{background:var(--ok);animation:p 1.6s infinite}
-.dot.demo{background:var(--warn)}
-@keyframes p{0%{box-shadow:0 0 0 0 #34d39966}100%{box-shadow:0 0 0 10px transparent}}
-button{font:inherit;border:0;border-radius:12px;padding:10px 16px;font-weight:600;color:#06121f;background:var(--a);cursor:pointer}
-button.ghost{background:#1a2538;color:var(--txt);font-weight:500;padding:8px 12px;font-size:13px}
-button:active{transform:scale(.97)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
-.lbl{color:var(--mut);font-size:12px;text-transform:uppercase;letter-spacing:1px}
-.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.gauges{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.g{position:relative;text-align:center}
-.g svg{width:100%;max-width:210px;display:block;margin:0 auto}
-.g .val{position:absolute;left:0;right:0;top:50%;transform:translateY(-38%);}
-.g .val b{display:block;font-size:34px;font-variant-numeric:tabular-nums;line-height:1}
-.g .val span{font-size:12px;color:var(--mut)}
-.trk{stroke:#1a2538}.arc{transition:stroke-dashoffset .9s ease-out}
-.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.kv div{background:#0e1522;border-radius:12px;padding:8px 10px}
-.kv b{display:block;font-size:17px;font-variant-numeric:tabular-nums}
-.kv span{font-size:11px;color:var(--mut)}
-canvas{width:100%;height:110px;display:block;margin-top:8px}
-.legend{display:flex;gap:12px;font-size:11px;color:var(--mut);margin-top:4px}
-.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
-.horizon{width:130px;height:130px;border-radius:50%;overflow:hidden;position:relative;border:2px solid #2a3850;background:#0e1522;flex:none}
-.hz{position:absolute;left:-50%;top:-50%;width:200%;height:200%;transition:transform .9s ease-out;background:linear-gradient(#1d4e7a 50%,#5a3a1f 50%)}
-.hz::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:#fff8}
-.mark{position:absolute;left:25%;right:25%;top:50%;height:3px;background:var(--warn);border-radius:2px}
-.meter{height:7px;background:#0e1522;border-radius:99px;overflow:hidden;margin-top:6px}
-.meter i{display:block;height:100%;width:0;border-radius:99px;transition:width .5s}
-.msg{font-size:13px;color:var(--warn);display:none}
-.big2{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+  :root{
+    --bg:#05070d; --panel:#0b1120; --borde:#1b2a44; --texto:#d7e6ff; --tenue:#6f86a8;
+    --cian:#27e1ff; --magenta:#ff3dcb; --verde:#3dff9a; --amarillo:#ffd23d; --rojo:#ff4d5e;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){ --bg:#eef3fb; --panel:#ffffff; --borde:#c9d6ea; --texto:#0d1b33; --tenue:#4f6282; }
+  }
+  :root[data-theme="dark"]{ --bg:#05070d; --panel:#0b1120; --borde:#1b2a44; --texto:#d7e6ff; --tenue:#6f86a8; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--texto);font-family:"Segoe UI",system-ui,sans-serif;
+       padding:16px;min-height:100vh}
+  header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  h1{margin:0;font-size:22px;letter-spacing:.14em;color:var(--cian);text-shadow:0 0 12px rgba(39,225,255,.6)}
+  .badge{font-size:12px;padding:4px 10px;border:1px solid var(--borde);border-radius:999px;color:var(--tenue)}
+  .badge.demo{color:var(--amarillo);border-color:var(--amarillo)}
+  .botones{display:flex;gap:8px;flex-wrap:wrap}
+  button{background:transparent;color:var(--cian);border:1px solid var(--cian);padding:8px 14px;border-radius:8px;
+         font-size:14px;cursor:pointer;box-shadow:0 0 10px rgba(39,225,255,.25)}
+  button:disabled{opacity:.4;cursor:default}
+  button.sec{color:var(--magenta);border-color:var(--magenta);box-shadow:0 0 10px rgba(255,61,203,.25)}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:12px;position:relative;overflow:hidden}
+  .card h2{margin:0 0 8px;font-size:12px;letter-spacing:.12em;color:var(--tenue);text-transform:uppercase;font-weight:600}
+  .valor{font-size:36px;font-weight:700;color:var(--texto);font-variant-numeric:tabular-nums}
+  .unidad{font-size:13px;color:var(--tenue);margin-left:4px}
+  .fila{display:flex;justify-content:space-between;font-size:14px;padding:3px 0;border-bottom:1px dashed var(--borde);font-variant-numeric:tabular-nums}
+  .fila span:last-child{color:var(--cian)}
+  canvas{width:100%;display:block}
+  .estado{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .luz{display:flex;align-items:center;gap:8px;font-size:13px}
+  .led{width:14px;height:14px;border-radius:50%;background:var(--rojo);box-shadow:0 0 10px var(--rojo)}
+  .led.v{background:var(--verde);box-shadow:0 0 10px var(--verde)}
+  .led.a{background:var(--amarillo);box-shadow:0 0 10px var(--amarillo)}
+  .cal{display:flex;gap:6px;align-items:center;margin-top:10px;font-size:13px;color:var(--tenue)}
+  .punto{width:12px;height:12px;border-radius:50%;border:1px solid var(--cian)}
+  .punto.on{background:var(--cian);box-shadow:0 0 8px var(--cian)}
+  .barra{height:10px;background:var(--borde);border-radius:6px;overflow:hidden;margin:4px 0}
+  .barra i{display:block;height:100%;background:linear-gradient(90deg,var(--cian),var(--magenta));width:0%}
+  .aviso{font-size:12px;color:var(--amarillo);margin-top:10px}
+  footer{margin-top:14px;font-size:12px;color:var(--tenue);text-align:center}
+  @media (max-width:520px){ body{padding:12px} .valor{font-size:30px} }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div>
-      <h1>Bici ESP32</h1>
-      <div class="st"><span class="dot" id="dot"></span><span id="stx">Desconectado</span><span id="age"></span></div>
-    </div>
-    <button id="btn">Conectar</button>
-  </header>
-  <div class="msg" id="msg"></div>
 
-  <div class="gauges">
-    <div class="card g">
-      <div class="lbl">Velocidad</div>
-      <svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" transform="rotate(135 60 60)"/>
-      <circle class="arc" id="arcV" cx="60" cy="60" r="50" fill="none" stroke="var(--a)" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" stroke-dashoffset="235.6" transform="rotate(135 60 60)"/></svg>
-      <div class="val"><b id="vel">0.0</b><span>km/h</span></div>
-    </div>
-    <div class="card g">
-      <div class="lbl">Cadencia</div>
-      <svg viewBox="0 0 120 120"><circle class="trk" cx="60" cy="60" r="50" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" transform="rotate(135 60 60)"/>
-      <circle class="arc" id="arcC" cx="60" cy="60" r="50" fill="none" stroke="var(--b)" stroke-width="10" stroke-linecap="round" stroke-dasharray="235.6 314.2" stroke-dashoffset="235.6" transform="rotate(135 60 60)"/></svg>
-      <div class="val"><b id="cad">0</b><span>rpm</span></div>
-    </div>
+<header>
+  <div>
+    <h1>CICLOCOM</h1>
+    <div class="badge" id="estadoConexion">Sin conexion</div>
+    <div class="badge demo" id="etiquetaDemo" hidden>Modo demo</div>
   </div>
+  <div class="botones">
+    <button id="btnConectar">Conectar</button>
+    <button id="btnDemo" class="sec">Modo demo</button>
+    <button id="btnRecal" disabled>Recalibrar</button>
+  </div>
+</header>
 
-  <div class="card">
-    <div class="row"><span class="lbl">Recorrido</span><button class="ghost" id="rst">Reiniciar</button></div>
-    <div class="kv">
-      <div><b id="dist">0.00</b><span>km</span></div>
-      <div><b id="vmax">0.0</b><span>vel. máx (km/h)</span></div>
-      <div><b id="tmp">0.0</b><span>temp (°C)</span></div>
-    </div>
-    <canvas id="ch"></canvas>
-    <div class="legend"><span><i style="background:#38bdf8"></i>Velocidad</span><span><i style="background:#fb923c"></i>Cadencia</span></div>
-  </div>
+<div class="grid">
 
-  <div class="card">
-    <div class="row"><span class="lbl">Inclinación (MPU)</span><button class="ghost" id="demo">Demo</button></div>
-    <div class="row" style="margin-top:12px;gap:16px">
-      <div class="horizon"><div class="hz" id="hz"></div><div class="mark"></div></div>
-      <div style="flex:1">
-        <div class="lbl">Pendiente</div><div class="big2" id="slope">0%</div>
-        <div class="lbl" style="margin-top:8px">Lateral</div><div class="big2" id="lean">0°</div>
-      </div>
-    </div>
-    <div class="kv">
-      <div><b id="ax">0</b><span>aX (g)</span></div>
-      <div><b id="ay">0</b><span>aY (g)</span></div>
-      <div><b id="az">0</b><span>aZ (g)</span></div>
-      <div><b id="gx">0</b><span>gX (°/s)</span></div>
-      <div><b id="gy">0</b><span>gY (°/s)</span></div>
-      <div><b id="gz">0</b><span>gZ (°/s)</span></div>
-    </div>
-  </div>
+  <section class="card">
+    <h2>Velocidad</h2>
+    <canvas id="gVel" height="170"></canvas>
+    <div><span class="valor" id="vVel">0.0</span><span class="unidad">km/h</span></div>
+    <div class="fila"><span>Velocidad máxima</span><span id="vMax">0.0 km/h</span></div>
+  </section>
 
-  <div class="card">
-    <div class="lbl">Señal analógica Hall (0–4095)</div>
-    <div class="row" style="margin-top:8px"><span>Cadencia</span><b id="a0c">0</b></div>
-    <div class="meter"><i id="mc" style="background:var(--b)"></i></div>
-    <div class="row" style="margin-top:10px"><span>Rueda</span><b id="a0r">0</b></div>
-    <div class="meter"><i id="mr" style="background:var(--a)"></i></div>
-  </div>
+  <section class="card">
+    <h2>Cadencia</h2>
+    <canvas id="gCad" height="170"></canvas>
+    <div><span class="valor" id="vCad">0</span><span class="unidad">rpm</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Recorrido</h2>
+    <div><span class="valor" id="vDist">0.000</span><span class="unidad">km</span></div>
+    <div class="fila"><span>Temperatura MPU</span><span id="vTemp">-- °C</span></div>
+    <div class="fila"><span>Tiempo activo</span><span id="vTiempo">00:00:00</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Horizonte</h2>
+    <canvas id="gHorizonte" height="200"></canvas>
+    <div class="fila"><span>Pendiente (pitch)</span><span id="vPt">0.0°</span></div>
+    <div class="fila"><span>Inclinación lateral (roll)</span><span id="vRl">0.0°</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Acelerómetro (g)</h2>
+    <div class="fila"><span>ax</span><span id="vAx">0.00</span></div>
+    <div class="fila"><span>ay</span><span id="vAy">0.00</span></div>
+    <div class="fila"><span>az</span><span id="vAz">0.00</span></div>
+    <h2 style="margin-top:12px">Giroscopio (°/s)</h2>
+    <div class="fila"><span>gx</span><span id="vGx">0.0</span></div>
+    <div class="fila"><span>gy</span><span id="vGy">0.0</span></div>
+    <div class="fila"><span>gz</span><span id="vGz">0.0</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Señales analógicas Hall</h2>
+    <div class="fila"><span>Rueda (a0r)</span><span id="vA0r">0</span></div>
+    <div class="barra"><i id="bA0r"></i></div>
+    <div class="fila"><span>Cadencia (a0c)</span><span id="vA0c">0</span></div>
+    <div class="barra"><i id="bA0c"></i></div>
+  </section>
+
+  <section class="card">
+    <h2>Estado del sistema</h2>
+    <div class="estado">
+      <div class="luz"><div class="led" id="lBt"></div>Bluetooth</div>
+      <div class="luz"><div class="led" id="lMpu"></div>MPU6500</div>
+      <div class="luz"><div class="led" id="lRue"></div>Hall rueda</div>
+      <div class="luz"><div class="led" id="lCad"></div>Hall cadencia</div>
+    </div>
+    <div class="cal">Calibración del sesgo:
+      <span class="punto" id="p1"></span><span class="punto" id="p2"></span><span class="punto" id="p3"></span>
+      <span id="txtCal">0/3</span>
+    </div>
+    <div class="aviso" id="avisoCal"></div>
+  </section>
+
 </div>
 
+<footer>Velocidad y cadencia calculadas en el ESP32 · Telemetría BLE cada 500 ms</footer>
+
 <script>
-const SERVICE='4fafc201-1fb5-459e-8fcc-c5c9c331914b';
-const CHAR='beb5483e-36e1-4688-b7f5-ea07361b26a8';
-const VMAX=60, CMAX=140, N=120, ARC=235.6;
-const $=id=>document.getElementById(id);
-const dec=new TextDecoder();
-let dev=null,connected=false,demoTimer=null,lastT=0,lastRx=0,dist=0,vmax=0;
-const H={v:[],c:[]};
+// ============================ CONFIGURACIÓN ============================
+const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+const N = 240;                 // muestras en las gráficas
+const UMBRAL_BT_MS = 4000;     // 4 s sin paquetes -> amarillo
+const VEL_MAX_GRAF = 50, CAD_MAX_GRAF = 120;
 
-function parse(s){
-  const o={};
-  s.split(',').forEach(p=>{const i=p.indexOf('=');if(i>0){const v=parseFloat(p.slice(i+1));if(!isNaN(v))o[p.slice(0,i).trim()]=v;}});
-  return o;
+// ============================ ESTADO ============================
+let caracteristica = null, dispositivo = null;
+let modoDemo = false, demoTimer = null, tDemo = 0;
+let ultimoPaquete = 0;
+let distanciaKm = 0, velMax = 0, tInicio = null, tUltimo = null;
+let historialVel = [], historialCad = [];
+let datos = {};   // último paquete interpretado
+let conectadoBT = false;
+
+// ============================ UTILIDADES ============================
+const $ = id => document.getElementById(id);
+const fmt = (v, d) => (typeof v === "number" && isFinite(v)) ? v.toFixed(d) : "--";
+
+function parsearPaquete(texto) {
+  const r = {};
+  texto.trim().split(",").forEach(par => {
+    const i = par.indexOf("=");
+    if (i > 0) {
+      const clave = par.slice(0, i).trim();
+      const val = par.slice(i + 1).trim();
+      const n = Number(val);
+      r[clave] = isNaN(n) ? val : n;   // campos desconocidos se ignoran
+    }
+  });
+  return r;
 }
-function setArc(id,val,max){$(id).style.strokeDashoffset=ARC*(1-Math.min(Math.max(val/max,0),1));}
-const f=(v,d)=>(v===undefined?'–':v.toFixed(d));
 
-function onText(s){
-  const d=parse(s);
-  if(d.vel===undefined&&d.cad===undefined)return;       // ignora "BiciESP32 lista"
-  const now=performance.now(),dt=lastT?Math.min((now-lastT)/1000,3):1;lastT=now;lastRx=now;
-  if(d.vel!==undefined){dist+=d.vel*dt/3600;vmax=Math.max(vmax,d.vel);
-    $('vel').textContent=d.vel.toFixed(1);setArc('arcV',d.vel,VMAX);
-    $('dist').textContent=dist.toFixed(2);$('vmax').textContent=vmax.toFixed(1);}
-  if(d.cad!==undefined){$('cad').textContent=d.cad.toFixed(0);setArc('arcC',d.cad,CMAX);}
-  if(d.tc!==undefined)$('tmp').textContent=d.tc.toFixed(1);
-  ['ax','ay','az'].forEach(k=>{if(d[k]!==undefined)$(k).textContent=d[k].toFixed(2);});
-  ['gx','gy','gz'].forEach(k=>{if(d[k]!==undefined)$(k).textContent=d[k].toFixed(0);});
-  if(d.ax!==undefined&&d.ay!==undefined&&d.az!==undefined){
-    const roll=Math.atan2(d.ay,d.az)*57.2958;
-    const pitch=Math.atan2(-d.ax,Math.hypot(d.ay,d.az))*57.2958;
-    $('hz').style.transform=`rotate(${-roll}deg) translateY(${pitch*1.2}px)`;
-    $('lean').textContent=roll.toFixed(0)+'°';
-    $('slope').textContent=(Math.tan(pitch/57.2958)*100).toFixed(0)+'%';
+// ============================ PROCESAMIENTO ============================
+function procesar(p) {
+  datos = { ...datos, ...p };
+  ultimoPaquete = Date.now();
+
+  const ahora = Date.now();
+  if (tInicio === null) tInicio = ahora;
+  if (tUltimo !== null && typeof datos.vel === "number") {
+    const dt = (ahora - tUltimo) / 1000;
+    distanciaKm += (datos.vel / 3600) * dt;     // integración de la velocidad
   }
-  if(d.a0c!==undefined){$('a0c').textContent=d.a0c;$('mc').style.width=d.a0c/40.95+'%';}
-  if(d.a0r!==undefined){$('a0r').textContent=d.a0r;$('mr').style.width=d.a0r/40.95+'%';}
-  H.v.push(d.vel??0);H.c.push(d.cad??0);
-  if(H.v.length>N){H.v.shift();H.c.shift();}
-  draw();
+  tUltimo = ahora;
+  if (typeof datos.vel === "number") velMax = Math.max(velMax, datos.vel);
+
+  historialVel.push(datos.vel ?? 0);
+  historialCad.push(datos.cad ?? 0);
+  if (historialVel.length > N) historialVel.shift();
+  if (historialCad.length > N) historialCad.shift();
+
+  pintarValores();
+  pintarEstado();
 }
 
-function draw(){
-  const c=$('ch'),dp=devicePixelRatio||1,w=c.clientWidth*dp,h=c.clientHeight*dp;
-  if(c.width!==w||c.height!==h){c.width=w;c.height=h;}
-  const g=c.getContext('2d');g.clearRect(0,0,w,h);
-  g.strokeStyle='#1f2a3b';g.lineWidth=dp;
-  for(let i=1;i<4;i++){g.beginPath();g.moveTo(0,h*i/4);g.lineTo(w,h*i/4);g.stroke();}
-  [[H.v,'#38bdf8',VMAX],[H.c,'#fb923c',CMAX]].forEach(([a,col,m])=>{
-    if(a.length<2)return;g.strokeStyle=col;g.lineWidth=2*dp;g.lineJoin='round';g.beginPath();
-    a.forEach((v,i)=>{const x=i/(N-1)*w,y=h-Math.min(v/m,1)*h*.92-h*.04;i?g.lineTo(x,y):g.moveTo(x,y);});g.stroke();});
+// ============================ PINTADO ============================
+function pintarValores() {
+  $("vVel").textContent = fmt(datos.vel, 1);
+  $("vCad").textContent = fmt(datos.cad, 0);
+  $("vMax").textContent = fmt(velMax, 1) + " km/h";
+  $("vDist").textContent = distanciaKm.toFixed(3);
+  $("vTemp").textContent = fmt(datos.tc, 1) + " °C";
+  $("vPt").textContent = fmt(datos.pt, 1) + "°";
+  $("vRl").textContent = fmt(datos.rl, 1) + "°";
+  $("vAx").textContent = fmt(datos.ax, 2);
+  $("vAy").textContent = fmt(datos.ay, 2);
+  $("vAz").textContent = fmt(datos.az, 2);
+  $("vGx").textContent = fmt(datos.gx, 1);
+  $("vGy").textContent = fmt(datos.gy, 1);
+  $("vGz").textContent = fmt(datos.gz, 1);
+  $("vA0r").textContent = datos.a0r ?? "--";
+  $("vA0c").textContent = datos.a0c ?? "--";
+  $("bA0r").style.width = ((datos.a0r ?? 0) / 4095 * 100) + "%";
+  $("bA0c").style.width = ((datos.a0c ?? 0) / 4095 * 100) + "%";
+  dibujarGraficas();
+  dibujarHorizonte();
 }
-setInterval(()=>{ if(connected||demoTimer){const s=((performance.now()-lastRx)/1000);$('age').textContent=lastRx?` · hace ${s.toFixed(0)}s`:'';} else $('age').textContent=''; },1000);
 
-function setStatus(t,cls){$('stx').textContent=t;$('dot').className='dot '+(cls||'');}
-function warn(t){const m=$('msg');m.textContent=t;m.style.display=t?'block':'none';}
+function pintarEstado() {
+  // Bluetooth: verde con datos recientes, amarillo si pasan más de 4 s, rojo sin conexión
+  const edad = Date.now() - ultimoPaquete;
+  let claseBt = "led";                       // rojo: sin conexión
+  if (conectadoBT || modoDemo) claseBt += edad <= UMBRAL_BT_MS ? " v" : " a";
+  $("lBt").className = claseBt;
 
-async function connect(){
-  warn('');
-  if(!navigator.bluetooth){warn('Este navegador no soporta Web Bluetooth. En iPhone abre esta página con la app Bluefy.');return;}
-  try{
-    stopDemo();
-    dev=await navigator.bluetooth.requestDevice({filters:[{services:[SERVICE]}]});
-    dev.addEventListener('gattserverdisconnected',onDisc);
-    await link();
-  }catch(e){setStatus('Desconectado');if(e.name!=='NotFoundError')warn('Error: '+e.message);}
-}
-async function link(){
-  setStatus('Conectando…');
-  const srv=await dev.gatt.connect();
-  const ch=await (await srv.getPrimaryService(SERVICE)).getCharacteristic(CHAR);
-  await ch.startNotifications();
-  ch.addEventListener('characteristicvaluechanged',e=>onText(dec.decode(e.target.value)));
-  connected=true;lastT=0;setStatus('Conectado · '+(dev.name||'BiciESP32'),'on');$('btn').textContent='Desconectar';
-}
-async function onDisc(){
-  connected=false;$('btn').textContent='Conectar';setStatus('Reconectando…');
-  for(let i=0;i<5&&!connected;i++){await new Promise(r=>setTimeout(r,1500));try{await link();return;}catch(e){}}
-  setStatus('Desconectado');
-}
-function disconnect(){if(dev&&dev.gatt.connected){dev.removeEventListener('gattserverdisconnected',onDisc);dev.gatt.disconnect();}
-  connected=false;$('btn').textContent='Conectar';setStatus('Desconectado');}
-$('btn').onclick=()=>connected?disconnect():connect();
-$('rst').onclick=()=>{dist=0;vmax=0;H.v=[];H.c=[];$('dist').textContent='0.00';$('vmax').textContent='0.0';draw();};
+  // MPU6500: verde si responde, rojo si no se detecta
+  $("lMpu").className = "led" + (datos.sm === 1 ? " v" : "");
 
-/* demo: genera el mismo texto que envía tu ESP32 */
-function stopDemo(){if(demoTimer){clearInterval(demoTimer);demoTimer=null;$('demo').textContent='Demo';setStatus('Desconectado');}}
-$('demo').onclick=()=>{
-  if(demoTimer){stopDemo();return;}
-  if(connected)disconnect();
-  setStatus('Modo demo','demo');$('demo').textContent='Parar demo';let t=0;
-  demoTimer=setInterval(()=>{t+=1;
-    const cad=Math.max(0,75+35*Math.sin(t*.35)),vel=cad*0.27+Math.random();
-    const R=Math.sin(t*.3)*.35,P=Math.cos(t*.2)*.25;
-    const s=`cad=${cad.toFixed(0)},vel=${vel.toFixed(2)},ax=${(-Math.sin(P)).toFixed(2)},ay=${(Math.sin(R)*Math.cos(P)).toFixed(2)},az=${(Math.cos(R)*Math.cos(P)).toFixed(2)},gx=${(Math.random()*4-2).toFixed(1)},gy=${(Math.random()*4-2).toFixed(1)},gz=${(Math.random()*4-2).toFixed(1)},tc=26.4,a0c=${(2000+Math.random()*900)|0},a0r=${(1800+Math.random()*1200)|0}`;
-    onText(s);},1000);
-};
-draw();
+  // Hall: verde recibe pulsos, amarillo detenido tras pulsos, rojo sin pulsos desde el arranque
+  const estadoHall = s => s === 2 ? " v" : (s === 1 ? " a" : "");
+  $("lRue").className = "led" + estadoHall(datos.sr ?? 0);
+  $("lCad").className = "led" + estadoHall(datos.sc ?? 0);
+
+  // Calibración: tres puntos según vueltas usadas (cv de 0 a 3)
+  const cv = datos.cv ?? 0;
+  ["p1","p2","p3"].forEach((id, i) => $(id).classList.toggle("on", i < cv));
+  $("txtCal").textContent = cv + "/3";
+  const lista = (datos.cal ?? 0) === 2;
+  $("avisoCal").textContent = lista ? "" :
+    "Gire la rueda al menos 3 vueltas en línea recta, sin pedalear, para calibrar el sesgo.";
+  $("estadoConexion").textContent = modoDemo ? "Demo activo" :
+    (conectadoBT ? (edad <= UMBRAL_BT_MS ? "Conectado" : "Sin datos recientes") : "Sin conexión");
+}
+
+// Gauge en canvas con arco de 270°
+function dibujarGauge(canvas, valor, max, color) {
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width = canvas.clientWidth * devicePixelRatio;
+  const h = canvas.height = 170 * devicePixelRatio;
+  ctx.clearRect(0, 0, w, h);
+  const cx = w / 2, cy = h * 0.6, r = Math.min(w, h) * 0.38;
+  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25;
+  ctx.lineWidth = 10 * devicePixelRatio; ctx.lineCap = "round";
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--borde");
+  ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+  const f = Math.max(0, Math.min(1, (valor || 0) / max));
+  ctx.strokeStyle = color;
+  ctx.shadowColor = color; ctx.shadowBlur = 14 * devicePixelRatio;
+  ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function dibujarSerie(canvas, serie, max, color) {
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width = canvas.clientWidth * devicePixelRatio;
+  const h = canvas.height = 60 * devicePixelRatio;
+  ctx.clearRect(0, 0, w, h);
+  if (serie.length < 2) return;
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5 * devicePixelRatio;
+  ctx.beginPath();
+  serie.forEach((v, i) => {
+    const x = i / (N - 1) * w;
+    const y = h - Math.min(v / max, 1) * h;
+    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+  });
+  ctx.stroke();
+}
+
+function dibujarGraficas() {
+  dibujarGauge($("gVel"), datos.vel, VEL_MAX_GRAF, "#27e1ff");
+  dibujarGauge($("gCad"), datos.cad, CAD_MAX_GRAF, "#ff3dcb");
+}
+
+// Horizonte artificial: cielo y tierra rotados por roll y desplazados por pitch
+function dibujarHorizonte() {
+  const c = $("gHorizonte");
+  const ctx = c.getContext("2d");
+  const w = c.width = c.clientWidth * devicePixelRatio;
+  const h = c.height = 200 * devicePixelRatio;
+  const cx = w / 2, cy = h / 2;
+  const roll = (datos.rl ?? 0) * Math.PI / 180;
+  const pitchPx = (datos.pt ?? 0) * (h / 60);
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
+  ctx.beginPath(); ctx.arc(cx, cy, Math.min(w, h) / 2 - 4, 0, Math.PI * 2); ctx.clip();
+  ctx.translate(cx, cy); ctx.rotate(-roll); ctx.translate(0, pitchPx);
+  ctx.fillStyle = "#0a2a4a"; ctx.fillRect(-w, -h, w * 2, h);
+  ctx.fillStyle = "#3a2410"; ctx.fillRect(-w, 0, w * 2, h);
+  ctx.strokeStyle = "#27e1ff"; ctx.lineWidth = 2 * devicePixelRatio;
+  ctx.beginPath(); ctx.moveTo(-w, 0); ctx.lineTo(w, 0); ctx.stroke();
+  ctx.restore();
+  // Marca fija de la bicicleta
+  ctx.strokeStyle = "#ffd23d"; ctx.lineWidth = 3 * devicePixelRatio;
+  ctx.beginPath(); ctx.moveTo(cx - 40 * devicePixelRatio, cy); ctx.lineTo(cx - 12 * devicePixelRatio, cy);
+  ctx.moveTo(cx + 12 * devicePixelRatio, cy); ctx.lineTo(cx + 40 * devicePixelRatio, cy); ctx.stroke();
+}
+
+// ============================ TIEMPO ACTIVO ============================
+setInterval(() => {
+  if (tInicio === null) return;
+  const s = Math.floor((Date.now() - tInicio) / 1000);
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor(s / 60) % 60).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  $("vTiempo").textContent = `${hh}:${mm}:${ss}`;
+  pintarEstado();
+}, 1000);
+
+// ============================ BLUETOOTH (Web Bluetooth en Bluefy) ============================
+async function conectar() {
+  if (!navigator.bluetooth) {
+    alert("Abra esta página con Bluefy en el iPhone para usar Web Bluetooth.");
+    return;
+  }
+  try {
+    detenerDemo();
+    dispositivo = await navigator.bluetooth.requestDevice({
+      filters: [{ name: "BiciESP32" }],
+      optionalServices: [SERVICE_UUID]
+    });
+    dispositivo.addEventListener("gattserverdisconnected", () => {
+      conectadoBT = false; $("btnRecal").disabled = true; pintarEstado();
+    });
+    const servidor = await dispositivo.gatt.connect();
+    const servicio = await servidor.getPrimaryService(SERVICE_UUID);
+    caracteristica = await servicio.getCharacteristic(CHAR_UUID);
+    await caracteristica.startNotifications();
+    caracteristica.addEventListener("characteristicvaluechanged", ev => {
+      const texto = new TextDecoder().decode(ev.target.value);
+      procesar(parsearPaquete(texto));
+    });
+    conectadoBT = true;
+    $("btnRecal").disabled = false;
+    $("btnConectar").textContent = "Reconectar";
+  } catch (e) {
+    alert("No se pudo conectar: " + e.message);
+  }
+}
+
+async function recalibrar() {
+  if (!caracteristica) return;
+  const cmd = new TextEncoder().encode("c");
+  await caracteristica.writeValue(cmd);
+}
+
+// ============================ MODO DEMO ============================
+// Genera paquetes con el mismo formato. Valores simulados, no mediciones.
+function iniciarDemo() {
+  if (conectadoBT) return;
+  modoDemo = true;
+  $("etiquetaDemo").hidden = false;
+  $("btnRecal").disabled = true;
+  demoTimer = setInterval(() => {
+    tDemo += 0.5;
+    const vel = 18 + 6 * Math.sin(tDemo / 9);
+    const cad = 75 + 12 * Math.sin(tDemo / 5);
+    const paquete =
+      `cad=${cad.toFixed(0)},vel=${vel.toFixed(2)},ax=${(0.1*Math.sin(tDemo)).toFixed(2)},` +
+      `ay=${(0.05*Math.cos(tDemo)).toFixed(2)},az=${(0.98).toFixed(2)},` +
+      `gx=${(2*Math.sin(tDemo/3)).toFixed(1)},gy=${(1.5*Math.cos(tDemo/4)).toFixed(1)},gz=${(0.4).toFixed(1)},` +
+      `tc=${(28 + 0.5*Math.sin(tDemo/20)).toFixed(1)},a0c=${Math.round(2000+800*Math.sin(tDemo))},` +
+      `a0r=${Math.round(2100+900*Math.cos(tDemo))},sr=2,sc=2,sm=1,cal=2,cv=3,` +
+      `rl=${(4*Math.sin(tDemo/6)).toFixed(1)},pt=${(2*Math.cos(tDemo/7)).toFixed(1)}`;
+    procesar(parsearPaquete(paquete));
+  }, 500);
+}
+
+function detenerDemo() {
+  if (demoTimer) clearInterval(demoTimer);
+  demoTimer = null; modoDemo = false;
+  $("etiquetaDemo").hidden = true;
+}
+
+// ============================ EVENTOS ============================
+$("btnConectar").addEventListener("click", conectar);
+$("btnRecal").addEventListener("click", recalibrar);
+$("btnDemo").addEventListener("click", () => modoDemo ? detenerDemo() : iniciarDemo());
+window.addEventListener("resize", () => { dibujarGraficas(); dibujarHorizonte(); });
+pintarEstado();
 </script>
 </body>
 </html>
