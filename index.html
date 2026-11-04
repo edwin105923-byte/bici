@@ -4,231 +4,293 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#02050a">
+<meta name="theme-color" content="#111827">
 <title>CicloCom</title>
 <style>
   :root{
-    --bg:#000409; --hud:#03101e; --linea:rgba(34,184,255,.22); --linea2:rgba(34,184,255,.55);
-    --texto:#e8f6ff; --tenue:#5d7fa6; --cian:#22b8ff; --azul:#0a5cff; --magenta:#7fd6ff; --violeta:#1e6bff; --lima:#cfeeff; --naranja:#ffb020;
-    --verde:#3dffa0; --ambar:#ffb020; --rojo:#ff4d4d;
-    --sans: "Segoe UI", -apple-system, system-ui, sans-serif;
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --bg:#111827; --tx:#F3F4F6; --ac:#A3E635;
+    --panel:#1b2434; --linea:#3a4352; --tenue:#9aa0aa;
+    --sans:-apple-system,"Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--texto);font-family:var(--sans);overflow-x:hidden}
-  body{
-    background:
-      radial-gradient(900px 500px at 50% -10%,rgba(10,92,255,.22),transparent 60%),
-      radial-gradient(700px 400px at 0% 100%,rgba(10,92,255,.10),transparent 60%),
-      radial-gradient(700px 400px at 100% 100%,rgba(34,184,255,.08),transparent 60%),
-      var(--bg);
-    display:flex;flex-direction:column;min-height:100vh;
-  }
-  /* rejilla HUD de fondo */
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
-    background-image:
-      linear-gradient(rgba(34,184,255,.05) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(34,184,255,.05) 1px,transparent 1px);
-    background-size:44px 44px;
-    -webkit-mask-image:radial-gradient(ellipse at center,#000 40%,transparent 85%);
-            mask-image:radial-gradient(ellipse at center,#000 40%,transparent 85%);}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);
+            overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+  body{display:flex;flex-direction:column;height:100dvh;transition:background .25s}
 
   /* ---------- Cabecera ---------- */
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-         padding:14px 20px 6px;position:relative;z-index:1}
-  .marca{font-family:var(--mono);font-size:15px;letter-spacing:.42em;color:var(--cian);
-         text-shadow:0 0 12px rgba(34,184,255,.8)}
-  .marca span{color:var(--tenue);font-size:10px;letter-spacing:.2em;margin-left:12px}
-  .reloj{font-family:var(--mono);font-size:13px;color:var(--tenue);letter-spacing:.12em}
+  header{display:flex;justify-content:space-between;align-items:center;gap:10px;
+         padding:max(12px,env(safe-area-inset-top)) 18px 4px}
+  .marca{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.38em;color:var(--ac)}
+  .der{display:flex;align-items:center;gap:8px}
+  .chip{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;
+        border:1px solid var(--linea);color:var(--tenue);white-space:nowrap}
+  .chip.on{color:var(--ac);border-color:var(--ac)}
+  .chip.rec{color:var(--bg);background:var(--ac);border-color:var(--ac);animation:lat 1.2s infinite}
+  .chip[hidden]{display:none}
+  @keyframes lat{50%{opacity:.55}}
+  .reloj{font-family:var(--mono);font-size:12px;color:var(--tenue);letter-spacing:.1em}
 
-  /* ---------- Panel principal ---------- */
-  main{flex:1;padding:6px 16px 12px;position:relative;z-index:1;max-width:1240px;width:100%;margin:0 auto;
-       display:flex;flex-direction:column;gap:12px}
-  .hud{position:relative;border:1px solid var(--linea);border-radius:6px;
-       background:linear-gradient(180deg,rgba(3,16,30,.92),rgba(0,4,9,.94));
-       box-shadow:inset 0 0 40px rgba(34,184,255,.04),0 0 30px rgba(34,184,255,.05);padding:14px}
-  /* esquinas tipo HUD */
-  .hud::before,.hud::after{content:"";position:absolute;width:26px;height:26px;border:2px solid var(--cian);pointer-events:none}
-  .hud::before{left:-1px;top:-1px;border-right:none;border-bottom:none;border-top-left-radius:18px}
-  .hud::after{right:-1px;bottom:-1px;border-left:none;border-top:none;border-bottom-right-radius:18px}
-
-  .fila-principal{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px;align-items:center}
-  @media (max-width:760px){ .fila-principal{grid-template-columns:1fr 1fr} .velocidad{grid-column:span 2;order:-1} }
-  .anillo{position:relative;width:100%;aspect-ratio:1/1;max-width:300px;margin:0 auto}
+  /* ---------- Pantalla principal ---------- */
+  main{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:12px;
+       padding:6px 14px;max-width:960px;width:100%;margin:0 auto}
+  .panel{background:var(--panel);border:1px solid var(--linea);border-radius:20px;padding:14px}
+  .fila{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px;align-items:center}
+  .anillo{position:relative;width:100%;aspect-ratio:1/1;max-width:280px;margin:0 auto}
   .anillo canvas{width:100%;height:100%;display:block}
-  .centro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
-  .numero{font-family:var(--mono);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;text-shadow:0 0 18px currentColor}
-  .numero.g{font-size:clamp(46px,8vw,78px);color:#e8f6ff;text-shadow:0 0 22px rgba(34,184,255,.9)}
-  .numero.m{font-size:clamp(34px,5.5vw,50px);color:#7fd6ff;text-shadow:0 0 18px rgba(34,184,255,.8)}
-  .unidad{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--tenue);margin-top:6px}
-  .etiqueta{position:absolute;top:0;left:0;font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--tenue)}
+  .centro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+          justify-content:center;pointer-events:none}
+  .num{font-family:var(--mono);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+  .num.g{font-size:clamp(44px,9vw,84px)}
+  .num.m{font-size:clamp(28px,5.5vw,46px)}
+  .uni{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--tenue);margin-top:6px}
+  .etq{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);font-family:var(--mono);
+       font-size:10px;letter-spacing:.24em;color:var(--tenue);white-space:nowrap}
 
-  /* ---------- Estadísticas ---------- */
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  @media (max-width:760px){ .stats{grid-template-columns:repeat(2,1fr)} }
-  .stat{border:1px solid var(--linea);border-top:2px solid var(--violeta);border-radius:4px;padding:10px 12px;background:rgba(10,92,255,.06)}
-  .stat small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--tenue);text-transform:uppercase}
-  .stat b{display:block;font-family:var(--mono);font-size:24px;margin-top:6px;font-variant-numeric:tabular-nums;color:var(--texto)}
-  .stat b i{font-style:normal;font-size:11px;color:var(--tenue);letter-spacing:.16em;margin-left:4px}
-  .stat.acento{border-top-color:var(--cian)} .stat.acento b{color:var(--cian)}
+  .stat{background:var(--panel);border:1px solid var(--linea);border-radius:16px;padding:10px 12px}
+  .stat small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--tenue);
+              text-transform:uppercase}
+  .stat b{display:block;font-family:var(--mono);font-size:24px;margin-top:6px;font-variant-numeric:tabular-nums}
+  .stat b i{font-style:normal;font-size:11px;color:var(--tenue);letter-spacing:.14em;margin-left:4px}
 
-  /* ---------- Barra de conexión (en línea) ---------- */
-  .conexion{position:relative;z-index:1;border-top:1px solid var(--linea);background:rgba(3,8,16,.92);
-            backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:10px 16px 14px}
-  .linea{display:flex;align-items:center;gap:10px;flex-wrap:wrap;max-width:1240px;margin:0 auto}
-  .btn{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-       padding:11px 16px;border-radius:10px;border:1px solid var(--c,var(--cian));color:var(--c,var(--cian));
-       background:rgba(255,255,255,.02);cursor:pointer;transition:box-shadow .2s,transform .08s,opacity .2s;white-space:nowrap}
-  .btn:hover{box-shadow:0 0 14px var(--c,var(--cian))}
+  /* ---------- Barra inferior ---------- */
+  .barra{display:flex;gap:10px;padding:10px 14px max(14px,env(safe-area-inset-bottom));
+         max-width:960px;width:100%;margin:0 auto}
+  .btn{flex:1;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
+       padding:14px 8px;border-radius:14px;border:1px solid var(--linea);color:var(--tx);
+       background:var(--panel);cursor:pointer;touch-action:manipulation;transition:transform .08s,opacity .2s;
+       white-space:nowrap}
   .btn:active{transform:scale(.97)}
-  .btn:disabled{opacity:.3;cursor:not-allowed;box-shadow:none}
-  .btn.p{--c:var(--cian);background:rgba(34,184,255,.1)}
-  .btn.r{--c:#7fd6ff}
-  .btn.d{--c:var(--cian)}
-  .btn.d{--c:var(--ambar)}
-  .sep{width:1px;height:28px;background:var(--linea)}
-  .luz{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--tenue);white-space:nowrap}
-  .led{width:9px;height:9px;border-radius:50%;background:var(--rojo);box-shadow:0 0 8px var(--rojo)}
-  .led.v{background:var(--verde);box-shadow:0 0 8px var(--verde)}
-  .led.a{background:var(--ambar);box-shadow:0 0 8px var(--ambar)}
-  .cal{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--tenue)}
-  .punto{width:10px;height:10px;border-radius:50%;border:1px solid var(--cian)}
-  .punto.on{background:var(--cian);box-shadow:0 0 8px var(--cian)}
-  .estado-texto{font-family:var(--mono);font-size:11px;letter-spacing:.16em;padding:6px 10px;border-radius:999px;border:1px solid var(--linea);color:var(--tenue)}
-  .estado-texto.on{color:var(--verde);border-color:var(--verde)}
-  .estado-texto.demo{color:var(--ambar);border-color:var(--ambar)}
+  .btn:disabled{opacity:.35}
+  .btn.p{background:var(--ac);color:var(--bg);border-color:var(--ac);font-weight:700}
+  .btn.rec{border-color:var(--ac);color:var(--ac)}
+  .btn.rec.on{background:var(--ac);color:var(--bg);font-weight:700}
 
-  .registro{font-family:var(--mono);font-size:11px;line-height:1.55;max-width:1240px;margin:10px auto 0;
-            height:64px;overflow:auto;color:var(--tenue);border-top:1px dashed var(--linea);padding-top:8px}
+  /* ---------- Ajustes (hoja) ---------- */
+  .hoja{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;
+        justify-content:center}
+  .hoja[hidden]{display:none}
+  .hoja-in{width:100%;max-width:640px;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+           background:var(--bg);border:1px solid var(--linea);border-bottom:none;border-radius:24px 24px 0 0;
+           padding:16px 18px max(22px,env(safe-area-inset-bottom))}
+  .hoja-top{display:flex;justify-content:space-between;align-items:center}
+  .hoja h2{margin:0;font-size:19px}
+  .sec{margin-top:20px}
+  .sec h3{margin:0 0 4px;font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--tenue);
+          text-transform:uppercase}
+  .aj{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;
+      border-top:1px solid var(--linea)}
+  .aj label{font-size:15px}
+  .aj small{display:block;color:var(--tenue);font-size:12px;margin-top:2px;line-height:1.35}
+  input[type=number],select{font-size:16px;background:var(--panel);color:var(--tx);border:1px solid var(--linea);
+        border-radius:10px;padding:9px 10px;min-width:130px;max-width:190px;font-family:var(--sans)}
+  input[type=checkbox]{width:24px;height:24px;accent-color:var(--ac);flex:none}
+  .temas{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  .tema{border:2px solid var(--linea);border-radius:14px;padding:12px 6px;background:var(--panel);
+        color:var(--tx);cursor:pointer;font-size:12px;text-align:center;font-family:var(--sans)}
+  .tema.sel{border-color:var(--ac)}
+  .pal{display:flex;justify-content:center;margin-bottom:8px;padding-left:6px}
+  .pal i{width:24px;height:24px;border-radius:50%;margin-left:-6px;border:2px solid rgba(255,255,255,.45)}
+  .mini{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:9px 12px;border-radius:10px;
+        border:1px solid var(--linea);background:var(--panel);color:var(--tx);cursor:pointer;white-space:nowrap}
+  .mini:disabled{opacity:.35}
+  .mini.pel{border-color:#ff6b6b;color:#ff6b6b}
+  .ride{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;
+        border-top:1px solid var(--linea)}
+  .ride b{display:block;font-size:14px}
+  .ride small{color:var(--tenue);font-size:12px}
+  .ride .bt{display:flex;gap:6px}
+  .vacio{color:var(--tenue);font-size:13px;padding:10px 0;border-top:1px solid var(--linea)}
+  .leds{display:flex;flex-wrap:wrap;gap:8px 16px;font-family:var(--mono);font-size:12px;color:var(--tenue);
+        padding:11px 0;border-top:1px solid var(--linea)}
+  .led{display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff4d4d;margin-right:6px}
+  .led.v{background:#3dffa0} .led.a{background:#ffb020}
+  .punto{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid var(--ac);margin-left:4px}
+  .punto.on{background:var(--ac)}
+  .botones{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .registro{font-family:var(--mono);font-size:11px;line-height:1.5;height:120px;overflow:auto;color:var(--tenue);
+            border:1px dashed var(--linea);border-radius:10px;padding:8px;margin-top:10px}
   .registro div{white-space:pre-wrap;word-break:break-word}
-  .registro .ok{color:var(--verde)} .registro .warn{color:var(--ambar)} .registro .err{color:var(--rojo)}
-  .aviso{font-family:var(--mono);font-size:11px;color:var(--ambar);max-width:1240px;margin:4px auto 0;min-height:1em}
-  @media (max-width:760px){ .sep{display:none} .btn{flex:1 1 auto;text-align:center} }
+  .registro .ok{color:var(--ac)} .registro .warn{color:#ffb020} .registro .err{color:#ff6b6b}
 
-  /* ---------- Ajuste para iPhone: todo en una sola pantalla ---------- */
-  @media (max-width:760px){
-    html,body{height:100%;overflow:hidden}
-    body{height:100dvh;min-height:0}
-    header{padding:10px 14px 2px}
-    .marca{font-size:13px;letter-spacing:.32em}
-    .marca span{display:none}
-    main{padding:4px 10px 6px;gap:8px;min-height:0;flex:1;justify-content:center}
-    .hud{padding:8px 10px 6px}
-    .fila-principal{gap:6px}
-    .anillo{max-width:150px}
-    .velocidad{max-width:210px}
-    .numero.g{font-size:52px}
-    .numero.m{font-size:34px}
-    .unidad{margin-top:2px;font-size:10px}
-    .etiqueta{font-size:9px}
-    .stats{gap:6px}
-    .stat{padding:6px 8px}
-    .stat small{font-size:9px;letter-spacing:.16em}
-    .stat b{font-size:19px;margin-top:2px}
-    .stat b i{font-size:9px}
-    .conexion{padding:8px 10px 8px}
-    .linea{gap:6px}
-    .btn{flex:1 1 0;padding:9px 6px;font-size:11px;letter-spacing:.1em;text-align:center}
-    .luz{font-size:10px;letter-spacing:.08em}
-    .cal,.estado-texto{font-size:10px}
-    .aviso{display:none}
-    .registro{height:34px;font-size:10px;line-height:1.35;margin-top:6px;padding-top:4px}
+  /* ---------- iPhone: todo en una pantalla ---------- */
+  @media (max-width:620px){
+    .fila{grid-template-columns:1fr 1fr;row-gap:2px}
+    .anillo.vel{grid-column:1/-1;order:-1;max-width:230px}
+    .anillo{max-width:170px}
+    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
+    .stat b{font-size:20px}
+    .marca{font-size:12px;letter-spacing:.3em}
+    .btn{font-size:12px;letter-spacing:.06em}
   }
-  @media (max-width:760px) and (max-height:700px){
-    .anillo{max-width:130px}
-    .velocidad{max-width:180px}
+  @media (max-width:620px) and (max-height:740px){
+    .anillo.vel{max-width:190px}
+    .anillo{max-width:140px}
+    .stat{padding:7px 10px}
+    .stat b{margin-top:3px}
+    .panel{padding:8px 10px}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="marca">CICLOCOM<span>TELEMETRIA · ESP32</span></div>
-  <div class="reloj" id="reloj">--:--:--</div>
+  <div class="marca">CICLOCOM</div>
+  <div class="der">
+    <span class="chip rec" id="chipRec" hidden>● REC</span>
+    <span class="chip" id="chipBt">SIN CONEXIÓN</span>
+    <span class="reloj" id="reloj">--:--</span>
+  </div>
 </header>
 
 <main>
-  <section class="hud">
-    <div class="fila-principal">
-      <!-- Cadencia -->
+  <section class="panel">
+    <div class="fila">
       <div class="anillo">
-        <span class="etiqueta">CADENCIA</span>
         <canvas id="cCad"></canvas>
-        <div class="centro"><div class="numero m" id="vCad">0</div><div class="unidad">RPM</div></div>
+        <div class="centro"><div class="num m" id="vCad">0</div><div class="uni">RPM</div></div>
+        <span class="etq">CADENCIA</span>
       </div>
-
-      <!-- Velocidad (principal) -->
-      <div class="anillo velocidad">
-        <span class="etiqueta">VELOCIDAD</span>
+      <div class="anillo vel">
         <canvas id="cVel"></canvas>
-        <div class="centro"><div class="numero g" id="vVel">0.0</div><div class="unidad">KM/H</div></div>
+        <div class="centro"><div class="num g" id="vVel">0.0</div><div class="uni">KM/H</div></div>
+        <span class="etq">VELOCIDAD</span>
       </div>
-
-      <!-- Horizonte -->
       <div class="anillo">
-        <span class="etiqueta">HORIZONTE</span>
-        <canvas id="cHor"></canvas>
-        <div class="centro" style="top:auto;bottom:6%;height:auto;">
-          <div class="unidad" id="vAng" style="margin:0;letter-spacing:.16em">P 0.0° · R 0.0°</div>
-        </div>
+        <canvas id="cPot"></canvas>
+        <div class="centro"><div class="num m" id="vPot">0</div><div class="uni">WATTS</div></div>
+        <span class="etq">POTENCIA EST.</span>
       </div>
     </div>
   </section>
 
   <section class="stats">
-    <div class="stat acento"><small>Distancia</small><b><span id="vDist">0.000</span><i>KM</i></b></div>
-    <div class="stat"><small>Vel. máxima</small><b><span id="vMax">0.0</span><i>KM/H</i></b></div>
-    <div class="stat"><small>Tiempo activo</small><b id="vTiempo">00:00:00</b></div>
-    <div class="stat"><small>Bogotá ahora</small><b><span id="vTemp">--</span><i>°C</i></b><small id="vRango" style="margin-top:4px;letter-spacing:.14em;text-transform:none">máx -- · mín --</small></div>
+    <div class="stat"><small>Distancia</small><b><span id="vDist">0.00</span><i>KM</i></b></div>
+    <div class="stat"><small>Tiempo</small><b id="vTiempo">00:00:00</b></div>
+    <div class="stat"><small>Altura</small><b><span id="vAlt">--</span><i>M</i></b></div>
+    <div class="stat"><small>Temperatura</small><b><span id="vTemp">--</span><i>°C</i></b></div>
   </section>
 </main>
 
-<footer class="conexion">
-  <div class="linea">
-    <button class="btn p" id="btnConectar">Conectar</button>
-    <button class="btn r" id="btnRecal" disabled>Recalibrar</button>
-    <button class="btn d" id="btnDemo">Demo</button>
-    <span class="sep"></span>
-    <span class="luz"><span class="led" id="lBt"></span>BT</span>
-    <span class="luz"><span class="led" id="lMpu"></span>MPU</span>
-    <span class="luz"><span class="led" id="lRue"></span>HALL RUEDA</span>
-    <span class="luz"><span class="led" id="lCad"></span>HALL CAD</span>
-    <span class="sep"></span>
-    <span class="cal">CAL <span class="punto" id="p1"></span><span class="punto" id="p2"></span><span class="punto" id="p3"></span><span id="txtCal">0/3</span></span>
-    <span class="estado-texto" id="estado">SIN CONEXION</span>
-  </div>
-  <div class="aviso" id="avisoCal"></div>
-  <div class="registro" id="registro"></div>
+<footer class="barra">
+  <button class="btn p" id="btnConectar">Conectar</button>
+  <button class="btn rec" id="btnRec">Grabar</button>
+  <button class="btn" id="btnAjustes">Ajustes</button>
 </footer>
 
+<!-- ======================= AJUSTES ======================= -->
+<div class="hoja" id="hoja" hidden>
+  <div class="hoja-in" role="dialog" aria-label="Ajustes">
+    <div class="hoja-top"><h2>Ajustes</h2><button class="mini" id="btnCerrar">Cerrar</button></div>
+
+    <div class="sec">
+      <h3>Color</h3>
+      <div class="temas" id="temas"></div>
+    </div>
+
+    <div class="sec">
+      <h3>Recorrido</h3>
+      <div class="aj"><label for="cAuto">Iniciar al moverme<small>Empieza a grabar solo al pasar de 3 km/h</small></label>
+        <input type="checkbox" id="cAuto"></div>
+      <div class="aj"><label for="cCirc">Circunferencia de rueda (m)<small>Corrige velocidad y distancia. Mídela con la rueda inflada y contigo encima.</small></label>
+        <input type="number" id="cCirc" step="0.01" min="1.5" max="2.8" inputmode="decimal"></div>
+    </div>
+
+    <div class="sec">
+      <h3>Potencia estimada</h3>
+      <div class="aj"><label for="cMasa">Masa total (kg)<small>Tú + bicicleta + equipo</small></label>
+        <input type="number" id="cMasa" step="1" min="30" max="250" inputmode="decimal"></div>
+      <div class="aj"><label for="cCda">Postura<small>Define la resistencia del aire</small></label>
+        <select id="cCda">
+          <option value="0.6">Erguida (MTB)</option>
+          <option value="0.45">Normal</option>
+          <option value="0.35">Agachada</option>
+        </select></div>
+      <div class="aj"><label for="cCrr">Terreno<small>Define la resistencia de rodadura</small></label>
+        <select id="cCrr">
+          <option value="0.006">Asfalto liso</option>
+          <option value="0.01">Asfalto normal</option>
+          <option value="0.016">Destapado compacto</option>
+          <option value="0.025">Trocha</option>
+        </select></div>
+      <div class="aj"><label for="cPend">Pendiente desde<small>Si al subir marca bajada, usa «IMU invertida».</small></label>
+        <select id="cPend">
+          <option value="imu">IMU del sensor</option>
+          <option value="imuinv">IMU invertida</option>
+          <option value="gps">GPS (altura)</option>
+          <option value="plano">Plano (0 %)</option>
+        </select></div>
+      <div class="aj"><small>Es una estimación con física (aire, rodadura, pendiente y aceleración), sin viento. No es un medidor de potencia.</small></div>
+    </div>
+
+    <div class="sec">
+      <h3>GPS y clima del iPhone</h3>
+      <div class="aj"><label for="cGps">Usar GPS del iPhone<small id="tGps">Apagado</small></label>
+        <input type="checkbox" id="cGps"></div>
+      <div class="aj"><label>Altura y temperatura<small id="tClima">--</small></label></div>
+    </div>
+
+    <div class="sec">
+      <h3>Recorridos guardados</h3>
+      <div id="historial"></div>
+    </div>
+
+    <div class="sec">
+      <h3>Diagnóstico</h3>
+      <div class="leds">
+        <span><span class="led" id="lBt"></span>BT</span>
+        <span><span class="led" id="lMpu"></span>MPU</span>
+        <span><span class="led" id="lRue"></span>HALL RUEDA</span>
+        <span><span class="led" id="lCad"></span>HALL CAD</span>
+        <span>CAL<span class="punto" id="p1"></span><span class="punto" id="p2"></span><span class="punto" id="p3"></span> <span id="txtCal">0/3</span></span>
+      </div>
+      <div class="aj"><small id="vAng">--</small></div>
+      <div class="botones">
+        <button class="mini" id="btnRecal" disabled>Recalibrar MPU</button>
+        <button class="mini" id="btnDemo">Iniciar demo</button>
+      </div>
+      <div class="registro" id="registro"></div>
+    </div>
+  </div>
+</div>
+
 <script>
+"use strict";
 // ============================ CONFIGURACIÓN ============================
 const SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
 const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
-const NOMBRE_BLE   = "BiciESP32";
+const CIRC_FW      = 2.30;      // circunferencia que usa el firmware (m)
 const UMBRAL_BT_MS = 4000;
-const VEL_MAX = 50, CAD_MAX = 120;
+const VEL_MAX = 50, CAD_MAX = 120, POT_MAX = 400;
 
-// ============================ ESTADO ============================
-const st = {
-  dev: null, car: null, conectado: false,
-  demo: false, demoTimer: null, t: 0,
-  ultimo: 0, inicio: null, tUlt: null,
-  dist: 0, velMax: 0, datos: {},
-  // valores mostrados (se suavizan hacia los reales)
-  vis: { vel: 0, cad: 0, pt: 0, rl: 0 }
+// Cada paleta: fondo, texto y acento
+const TEMAS = {
+  mar:   { nombre: "Opción 1", bg: "#0E7490", tx: "#ECFEFF", ac: "#FB7185" },
+  noche: { nombre: "Opción 2", bg: "#111827", tx: "#F3F4F6", ac: "#A3E635" },
+  fuego: { nombre: "Opción 3", bg: "#BE123C", tx: "#FFF7ED", ac: "#FDBA74" }
 };
 
+const CFG_DEF = { tema: "noche", masa: 85, cda: 0.45, crr: 0.01, pend: "imu", circ: 2.30, auto: true, gps: true };
+const cfg = Object.assign({}, CFG_DEF);
+try { Object.assign(cfg, JSON.parse(localStorage.getItem("cc_cfg") || "{}")); } catch (_) {}
+function guardarCfg() { try { localStorage.setItem("cc_cfg", JSON.stringify(cfg)); } catch (_) {} }
+
+// ============================ UTILIDADES ============================
 const $ = id => document.getElementById(id);
 const fmt = (v, d) => (typeof v === "number" && isFinite(v)) ? v.toFixed(d) : "--";
 const p2 = n => String(n).padStart(2, "0");
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const dormir = ms => new Promise(r => setTimeout(r, ms));
+const hms = s => `${p2(Math.floor(s / 3600))}:${p2(Math.floor(s / 60) % 60)}:${p2(Math.floor(s) % 60)}`;
 
 function log(texto, tipo = "") {
   const r = $("registro");
   const d = document.createElement("div");
   d.className = tipo;
-  d.textContent = new Date().toLocaleTimeString("es-CO", {hour12:false}) + "  " + texto;
+  d.textContent = new Date().toLocaleTimeString("es-CO", { hour12: false }) + "  " + texto;
   r.appendChild(d);
+  while (r.childNodes.length > 200) r.removeChild(r.firstChild);
   r.scrollTop = r.scrollHeight;
 }
 
@@ -250,90 +312,428 @@ function parsear(texto) {
   return r;
 }
 
+// ============================ TEMAS ============================
+let col = { bg: "#111827", tx: "#F3F4F6", ac: "#A3E635", tenue: "#9aa0aa", linea: "#3a4352" };
+const hex2rgb = h => { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
+function mezcla(a, b, t) {
+  const A = hex2rgb(a), B = hex2rgb(b);
+  return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, "0")).join("");
+}
+
+function aplicarTema(id) {
+  const T = TEMAS[id] || TEMAS.noche;
+  const r = document.documentElement.style;
+  col = { bg: T.bg, tx: T.tx, ac: T.ac,
+          panel: mezcla(T.bg, T.tx, 0.09), linea: mezcla(T.bg, T.tx, 0.28), tenue: mezcla(T.bg, T.tx, 0.68) };
+  r.setProperty("--bg", col.bg); r.setProperty("--tx", col.tx); r.setProperty("--ac", col.ac);
+  r.setProperty("--panel", col.panel); r.setProperty("--linea", col.linea); r.setProperty("--tenue", col.tenue);
+  const m = document.querySelector("meta[name=theme-color]");
+  if (m) m.setAttribute("content", col.bg);
+  cfg.tema = TEMAS[id] ? id : "noche";
+  guardarCfg();
+}
+
+function dibujarTemas() {
+  const c = $("temas");
+  c.innerHTML = "";
+  Object.keys(TEMAS).forEach(id => {
+    const T = TEMAS[id];
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tema" + (cfg.tema === id ? " sel" : "");
+    b.innerHTML = `<div class="pal"><i style="background:${T.bg}"></i><i style="background:${T.tx}"></i><i style="background:${T.ac}"></i></div>${T.nombre}`;
+    b.onclick = () => { aplicarTema(id); dibujarTemas(); };
+    c.appendChild(b);
+  });
+}
+
+// ============================ ESTADO ============================
+const st = {
+  dev: null, car: null, conectado: false, manual: false, reintentando: false,
+  demo: false, demoTimer: null, t: 0,
+  ultimo: 0, datos: {}, velKmh: 0,
+  tPrev: null, vPrev: 0, acel: 0, pot: 0, grade: 0, odo: 0,
+  vis: { vel: 0, cad: 0, pot: 0 }, wake: null
+};
+const gps   = { id: null, lat: null, lon: null, acc: null, alt: null, altAcc: null, pts: [], estado: "apagado" };
+const clima = { temp: null, elev: null, ts: 0, lat: null, lon: null, ok: false };
+const ride  = { activo: false, id: 0, t0: 0, muestras: [], dist: 0, velMax: 0, tMov: 0, ascenso: 0, altBase: null, ultGuardado: 0 };
+
+function alturaActual() {
+  if (gps.alt !== null) return gps.alt;
+  if (clima.elev !== null) return clima.elev;
+  return null;
+}
+
+// ============================ FÍSICA: PENDIENTE Y POTENCIA ============================
+function gradeGPS() {
+  const p = gps.pts;
+  if (p.length < 2) return 0;
+  const a = p[0], b = p[p.length - 1], dd = b.o - a.o;
+  if (dd < 25) return 0;
+  return clamp((b.h - a.h) / dd * 100, -25, 25);
+}
+
+function pendienteActual() {
+  if (cfg.pend === "plano") return 0;
+  if (cfg.pend === "gps") return gradeGPS();
+  if ((st.datos.cal ?? 0) !== 2) return 0;          // sin calibrar no hay referencia de nivel
+  const g = Math.tan((st.datos.pt || 0) * Math.PI / 180) * 100 * (cfg.pend === "imuinv" ? -1 : 1);
+  return clamp(g, -25, 25);
+}
+
+function densidadAire() {
+  const h = alturaActual() ?? 0;
+  const T = (clima.temp ?? 15) + 273.15;
+  const p = 101325 * Math.pow(1 - 2.25577e-5 * h, 5.25588);
+  return p / (287.05 * T);
+}
+
+function potenciaW(v, a, pendPct, cad) {
+  if (v < 0.8 || cad <= 0) return 0;                // sin pedalear no hay potencia
+  const g = 9.80665, th = Math.atan(pendPct / 100), rho = densidadAire();
+  const F = 0.5 * rho * cfg.cda * v * v + cfg.crr * cfg.masa * g * Math.cos(th)
+          + cfg.masa * g * Math.sin(th) + cfg.masa * a;
+  return Math.max(0, F * v / 0.975);                // 97,5 % de eficiencia de transmisión
+}
+
 // ============================ PROCESAMIENTO ============================
 function procesar(p) {
-  st.datos = { ...st.datos, ...p };
-  st.ultimo = Date.now();
-  if (st.inicio === null) st.inicio = st.ultimo;
-  if (st.tUlt !== null && typeof st.datos.vel === "number")
-    st.dist += (st.datos.vel / 3600) * ((st.ultimo - st.tUlt) / 1000);
-  st.tUlt = st.ultimo;
-  if (typeof st.datos.vel === "number") st.velMax = Math.max(st.velMax, st.datos.vel);
+  const ahora = Date.now();
+  st.datos = Object.assign(st.datos, p);
+  st.ultimo = ahora;
+  const d = st.datos;
+  const velKmh = (typeof d.vel === "number" ? d.vel : 0) * (cfg.circ / CIRC_FW);
+  const cad = typeof d.cad === "number" ? d.cad : 0;
+  st.velKmh = velKmh;
+  const v = velKmh / 3.6;
+
+  let dt = 0;
+  if (st.tPrev !== null) dt = Math.min(2, (ahora - st.tPrev) / 1000);
+  st.tPrev = ahora;
+
+  if (dt > 0.05) {
+    const aRaw = clamp((v - st.vPrev) / dt, -3, 3);
+    st.acel += (aRaw - st.acel) * 0.3;
+    st.odo += v * dt;
+    st.grade += (pendienteActual() - st.grade) * 0.2;
+    const P = potenciaW(v, st.acel, st.grade, cad);
+    st.pot += (P - st.pot) * (1 - Math.exp(-dt / 3));   // promedio de ~3 s
+    if (ride.activo) {
+      ride.dist += v * dt;
+      if (velKmh > 1) ride.tMov += dt;
+      ride.velMax = Math.max(ride.velMax, velKmh);
+    }
+  }
+  st.vPrev = v;
+
+  if (!ride.activo && cfg.auto && !st.demo && velKmh >= 3) iniciarRide();
   pintarTextos();
   pintarEstado();
 }
 
 function pintarTextos() {
-  const d = st.datos;
-  $("vDist").textContent = st.dist.toFixed(3);
-  $("vMax").textContent = fmt(st.velMax, 1);
-  $("vAng").textContent = `P ${fmt(d.pt,1)}°  ·  R ${fmt(d.rl,1)}°`;
+  const alt = alturaActual();
+  $("vDist").textContent = (ride.dist / 1000).toFixed(2);
+  $("vTiempo").textContent = hms(ride.tMov);
+  $("vAlt").textContent = alt === null ? "--" : Math.round(alt);
+  $("vTemp").textContent = fmt(clima.temp, 1);
+  $("vAng").textContent = `Inclinación  P ${fmt(st.datos.pt, 1)}°  ·  R ${fmt(st.datos.rl, 1)}°  ·  pendiente ${fmt(st.grade, 1)} %`;
 }
 
 function pintarEstado() {
   const d = st.datos, edad = Date.now() - st.ultimo;
-  const activo = st.conectado || st.demo;
-  let bt = "led";
-  if (activo) bt += edad <= UMBRAL_BT_MS ? " v" : " a";
-  $("lBt").className = bt;
+  let txt = "SIN CONEXIÓN", cls = "chip";
+  if (st.demo) { txt = "DEMO"; cls += " on"; }
+  else if (st.reintentando) { txt = "RECONECTANDO"; }
+  else if (st.conectado) {
+    if (edad <= UMBRAL_BT_MS) { txt = "CONECTADO"; cls += " on"; } else txt = "SIN DATOS";
+  }
+  $("chipBt").textContent = txt; $("chipBt").className = cls;
+  $("chipRec").hidden = !ride.activo;
+
+  const act = st.conectado || st.demo;
+  $("lBt").className = "led" + (act ? (edad <= UMBRAL_BT_MS ? " v" : " a") : "");
   $("lMpu").className = "led" + (d.sm === 1 ? " v" : "");
   const h = s => s === 2 ? " v" : (s === 1 ? " a" : "");
   $("lRue").className = "led" + h(d.sr ?? 0);
   $("lCad").className = "led" + h(d.sc ?? 0);
-
   const cv = d.cv ?? 0;
-  ["p1","p2","p3"].forEach((id, i) => $(id).classList.toggle("on", i < cv));
-  $("txtCal").textContent = cv + "/3";
-  $("avisoCal").textContent = (d.cal ?? 0) === 2 ? "" : "Gira la rueda 3 vueltas en línea recta, sin pedalear, para calibrar.";
+  ["p1", "p2", "p3"].forEach((id, i) => $(id).classList.toggle("on", i < cv));
+  $("txtCal").textContent = cv + "/3" + ((d.cal ?? 0) === 2 ? " listo" : "");
 
-  const e = $("estado");
-  if (st.demo) { e.textContent = "DEMO"; e.className = "estado-texto demo"; }
-  else if (st.conectado) {
-    e.textContent = edad <= UMBRAL_BT_MS ? "CONECTADO" : "SIN DATOS";
-    e.className = "estado-texto " + (edad <= UMBRAL_BT_MS ? "on" : "");
-  } else { e.textContent = "SIN CONEXION"; e.className = "estado-texto"; }
+  $("btnConectar").textContent = st.conectado ? "Desconectar" : (st.reintentando ? "Cancelar" : "Conectar");
   $("btnRecal").disabled = !st.conectado;
+  $("btnRec").textContent = ride.activo ? "Detener" : "Grabar";
+  $("btnRec").classList.toggle("on", ride.activo);
+  $("btnDemo").textContent = st.demo ? "Detener demo" : "Iniciar demo";
 }
 
+// ============================ GPS DEL iPHONE ============================
+function distKm(la1, lo1, la2, lo2) {
+  const R = 6371, rad = x => x * Math.PI / 180;
+  const a = Math.sin(rad(la2 - la1) / 2) ** 2 +
+            Math.cos(rad(la1)) * Math.cos(rad(la2)) * Math.sin(rad(lo2 - lo1) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
 
-// ============================ CLIMA DE BOGOTÁ ============================
-// Temperatura real de Bogotá del día (Open-Meteo, sin clave), actualizada cada 10 min
-const URL_CLIMA = "https://api.open-meteo.com/v1/forecast?latitude=4.711&longitude=-74.0721" +
-  "&current=temperature_2m&daily=temperature_2m_max,temperature_2m_min" +
-  "&timezone=America%2FBogota&forecast_days=1";
+function pintarGps() {
+  $("cGps").checked = !!cfg.gps;
+  $("tGps").textContent = !cfg.gps ? "Apagado"
+    : (gps.estado === "ok" ? `Señal ±${Math.round(gps.acc)} m` : gps.estado);
+  const alt = gps.alt !== null ? `GPS${gps.altAcc ? " ±" + Math.round(gps.altAcc) + " m" : ""}`
+            : (clima.elev !== null ? "mapa (sin GPS)" : "--");
+  $("tClima").textContent = `Altura: ${alt}  ·  Temperatura: ${clima.ok ? "clima del lugar" : "--"}`;
+}
 
+function iniciarGPS() {
+  if (!cfg.gps || gps.id !== null) return;
+  if (!navigator.geolocation) { gps.estado = "no disponible"; pintarGps(); return; }
+  gps.estado = "buscando…"; pintarGps();
+  gps.id = navigator.geolocation.watchPosition(alGPS, errGPS,
+    { enableHighAccuracy: true, maximumAge: 2000, timeout: 20000 });
+}
+
+function detenerGPS() {
+  if (gps.id !== null && navigator.geolocation) navigator.geolocation.clearWatch(gps.id);
+  gps.id = null; gps.estado = "apagado"; gps.alt = null; gps.altAcc = null; gps.pts = [];
+  pintarGps();
+}
+
+function errGPS(e) {
+  gps.estado = (e && e.code === 1) ? "permiso denegado" : "sin señal";
+  pintarGps();
+  log("GPS: " + gps.estado, "warn");
+}
+
+function alGPS(pos) {
+  const c = pos.coords;
+  gps.lat = c.latitude; gps.lon = c.longitude; gps.acc = c.accuracy; gps.estado = "ok";
+  if (c.altitude !== null && c.altitude !== undefined && (c.altitudeAccuracy == null || c.altitudeAccuracy <= 40)) {
+    gps.alt = gps.alt === null ? c.altitude : gps.alt + (c.altitude - gps.alt) * 0.25;
+    gps.altAcc = c.altitudeAccuracy;
+    const ult = gps.pts[gps.pts.length - 1];
+    if (!ult || st.odo - ult.o >= 8) {
+      gps.pts.push({ o: st.odo, h: gps.alt });
+      while (gps.pts.length > 2 && st.odo - gps.pts[0].o > 80) gps.pts.shift();
+    }
+    if (ride.activo) {                               // ascenso acumulado con histéresis de 3 m
+      if (ride.altBase === null) ride.altBase = gps.alt;
+      else if (gps.alt - ride.altBase >= 3) { ride.ascenso += gps.alt - ride.altBase; ride.altBase = gps.alt; }
+      else if (ride.altBase - gps.alt >= 3) ride.altBase = gps.alt;
+    }
+  }
+  if (clima.lat === null || distKm(clima.lat, clima.lon, gps.lat, gps.lon) > 3) actualizarClima();
+  pintarGps();
+}
+
+// ============================ CLIMA (Open-Meteo, sin clave) ============================
 async function actualizarClima() {
+  const lat = gps.lat ?? 4.711, lon = gps.lon ?? -74.07;     // sin GPS: Bogotá
+  clima.ts = Date.now(); clima.lat = lat; clima.lon = lon;
   try {
-    const r = await fetch(URL_CLIMA, { cache: "no-store" });
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=" + lat.toFixed(2) +
+                "&longitude=" + lon.toFixed(2) + "&current=temperature_2m&timezone=auto";
+    const r = await fetch(url, { cache: "no-store" });
     if (!r.ok) throw new Error("HTTP " + r.status);
     const j = await r.json();
-    const ahora = j.current && j.current.temperature_2m;
-    const max = j.daily && j.daily.temperature_2m_max && j.daily.temperature_2m_max[0];
-    const min = j.daily && j.daily.temperature_2m_min && j.daily.temperature_2m_min[0];
-    $("vTemp").textContent = fmt(ahora, 1);
-    $("vRango").textContent = `máx ${fmt(max, 1)} · mín ${fmt(min, 1)}`;
-    log("Clima de Bogotá actualizado: " + fmt(ahora, 1) + " °C.", "ok");
+    if (j.current && typeof j.current.temperature_2m === "number") clima.temp = j.current.temperature_2m;
+    if (typeof j.elevation === "number") clima.elev = j.elevation;
+    clima.ok = clima.temp !== null;
+    log("Clima actualizado: " + fmt(clima.temp, 1) + " °C.", "ok");
   } catch (e) {
-    $("vTemp").textContent = "--";
-    log("No se pudo leer el clima de Bogotá: " + describirError(e), "warn");
+    log("No se pudo leer el clima: " + describirError(e), "warn");
   }
+  pintarGps();
 }
-actualizarClima();
-setInterval(actualizarClima, 10 * 60 * 1000);
 
-// ============================ TIEMPO Y RELOJ ============================
+// ============================ RECORRIDOS (IndexedDB) ============================
+const DB = {
+  _db: null,
+  abrir() {
+    if (this._db) return Promise.resolve(this._db);
+    return new Promise((ok, ko) => {
+      const r = indexedDB.open("ciclocom", 1);
+      r.onupgradeneeded = () => {
+        r.result.createObjectStore("rides", { keyPath: "id" });
+        r.result.createObjectStore("muestras", { keyPath: "id" });
+      };
+      r.onsuccess = () => { this._db = r.result; ok(r.result); };
+      r.onerror = () => ko(r.error);
+    });
+  },
+  async guardar(res, muestras) {
+    const db = await this.abrir();
+    return new Promise((ok, ko) => {
+      const t = db.transaction(["rides", "muestras"], "readwrite");
+      t.objectStore("rides").put(res);
+      t.objectStore("muestras").put({ id: res.id, m: muestras });
+      t.oncomplete = () => ok();
+      t.onerror = t.onabort = () => ko(t.error);
+    });
+  },
+  async pedir(store, fn) {
+    const db = await this.abrir();
+    return new Promise((ok, ko) => {
+      const t = db.transaction(store, "readonly");
+      const rq = fn(t.objectStore(store));
+      t.oncomplete = () => ok(rq.result);
+      t.onerror = t.onabort = () => ko(t.error);
+    });
+  },
+  resumenes() { return this.pedir("rides", s => s.getAll()); },
+  async muestras(id) { const r = await this.pedir("muestras", s => s.get(id)); return r ? r.m : []; },
+  async borrar(id) {
+    const db = await this.abrir();
+    return new Promise((ok, ko) => {
+      const t = db.transaction(["rides", "muestras"], "readwrite");
+      t.objectStore("rides").delete(id);
+      t.objectStore("muestras").delete(id);
+      t.oncomplete = () => ok();
+      t.onerror = t.onabort = () => ko(t.error);
+    });
+  }
+};
+
+function iniciarRide() {
+  if (ride.activo) return;
+  if (st.demo) { log("La demo no se graba (son datos simulados).", "warn"); return; }
+  Object.assign(ride, { activo: true, id: Date.now(), t0: Date.now(), muestras: [], dist: 0, velMax: 0,
+                        tMov: 0, ascenso: 0, altBase: gps.alt, ultGuardado: Date.now() });
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {}
+  pedirWake(); iniciarGPS();
+  log("Recorrido iniciado.", "ok");
+  pintarTextos(); pintarEstado();
+}
+
+function resumenRide(cerrado) {
+  const mov = ride.muestras.filter(m => m.v > 1);
+  const prom = k => mov.length ? mov.reduce((s, m) => s + (m[k] || 0), 0) / mov.length : 0;
+  return {
+    id: ride.id, inicio: ride.t0, fin: Date.now(), cerrado: !!cerrado,
+    distM: ride.dist, tMov: ride.tMov, velMax: ride.velMax,
+    velProm: ride.tMov > 5 ? ride.dist / ride.tMov * 3.6 : 0,
+    potProm: prom("p"), cadProm: prom("c"), ascenso: ride.ascenso, n: ride.muestras.length
+  };
+}
+
+async function guardarRide(cerrado) {
+  try { await DB.guardar(resumenRide(cerrado), ride.muestras); ride.ultGuardado = Date.now(); }
+  catch (e) { log("No se pudo guardar el recorrido: " + describirError(e), "err"); return false; }
+  return true;
+}
+
+async function detenerRide() {
+  if (!ride.activo) return;
+  ride.activo = false;
+  const ok = await guardarRide(true);
+  log(ok ? `Recorrido guardado: ${(ride.dist / 1000).toFixed(2)} km, ${hms(ride.tMov)}.` : "Recorrido no guardado.", ok ? "ok" : "err");
+  pintarEstado();
+  cargarHistorial();
+}
+
+function aCSV(res, muestras) {
+  const filas = ["tiempo_s,hora,vel_kmh,cad_rpm,pot_est_w,altura_m,temp_c,lat,lon,pend_pct,dist_m"];
+  muestras.forEach(m => {
+    const v = x => (x === null || x === undefined) ? "" : x;
+    filas.push([m.t, new Date(res.inicio + m.t * 1000).toISOString(), m.v, m.c, m.p, v(m.a), v(m.tc),
+                v(m.la), v(m.lo), v(m.g), m.d].join(","));
+  });
+  return filas.join("\n");
+}
+
+async function exportarCSV(res) {
+  const muestras = await DB.muestras(res.id);
+  const csv = aCSV(res, muestras);
+  const f = new Date(res.inicio);
+  const nombre = `ciclocom_${f.getFullYear()}-${p2(f.getMonth() + 1)}-${p2(f.getDate())}_${p2(f.getHours())}${p2(f.getMinutes())}.csv`;
+  try {
+    const file = new File([csv], nombre, { type: "text/csv" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: nombre });
+      return;
+    }
+  } catch (e) { if (e && e.name === "AbortError") return; }
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = nombre; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  log("CSV generado: " + nombre, "ok");
+}
+
+async function cargarHistorial() {
+  const cont = $("historial");
+  let lista = [];
+  try { lista = await DB.resumenes(); } catch (e) { log("Historial no disponible: " + describirError(e), "warn"); }
+  cont.innerHTML = "";
+  if (!lista.length) { const v = document.createElement("div"); v.className = "vacio"; v.textContent = "Aún no hay recorridos guardados."; cont.appendChild(v); return; }
+  lista.sort((a, b) => b.inicio - a.inicio).forEach(res => {
+    const fila = document.createElement("div"); fila.className = "ride";
+    const info = document.createElement("div");
+    const t = document.createElement("b");
+    t.textContent = new Date(res.inicio).toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" }) + (res.cerrado ? "" : " (sin cerrar)");
+    const s = document.createElement("small");
+    s.textContent = `${(res.distM / 1000).toFixed(2)} km · ${hms(res.tMov)} · ${res.velProm.toFixed(1)} km/h prom · +${Math.round(res.ascenso)} m`;
+    info.appendChild(t); info.appendChild(s);
+    const bt = document.createElement("div"); bt.className = "bt";
+    const bC = document.createElement("button"); bC.className = "mini"; bC.textContent = "CSV";
+    bC.onclick = () => exportarCSV(res);
+    const bD = document.createElement("button"); bD.className = "mini pel"; bD.textContent = "Borrar";
+    let armado = false;
+    bD.onclick = async () => {
+      if (!armado) { armado = true; bD.textContent = "¿Seguro?"; setTimeout(() => { armado = false; bD.textContent = "Borrar"; }, 3000); return; }
+      await DB.borrar(res.id); cargarHistorial();
+    };
+    bt.appendChild(bC); bt.appendChild(bD);
+    fila.appendChild(info); fila.appendChild(bt);
+    cont.appendChild(fila);
+  });
+}
+
+// ============================ RELOJ, MUESTREO Y VIGILANCIA ============================
 setInterval(() => {
   const now = new Date();
-  $("reloj").textContent = `${p2(now.getHours())}:${p2(now.getMinutes())}:${p2(now.getSeconds())}`;
-  if (st.inicio !== null) {
-    const s = Math.floor((Date.now() - st.inicio) / 1000);
-    $("vTiempo").textContent = `${p2(Math.floor(s/3600))}:${p2(Math.floor(s/60)%60)}:${p2(s%60)}`;
+  $("reloj").textContent = `${p2(now.getHours())}:${p2(now.getMinutes())}`;
+
+  const fresco = (Date.now() - st.ultimo) <= UMBRAL_BT_MS;
+  if (ride.activo && (fresco || st.demo)) {          // una muestra por segundo
+    const alt = alturaActual();
+    ride.muestras.push({
+      t: Math.round((Date.now() - ride.t0) / 1000), v: +st.velKmh.toFixed(2), c: Math.round(st.datos.cad || 0),
+      p: Math.round(st.pot), a: alt === null ? null : Math.round(alt * 10) / 10, tc: clima.temp,
+      la: gps.lat, lo: gps.lon, g: +st.grade.toFixed(1), d: Math.round(ride.dist)
+    });
   }
+  if (ride.activo && Date.now() - ride.ultGuardado > 30000) guardarRide(false);   // respaldo cada 30 s
+
+  // Vigilancia del enlace: si deja de llegar información, se reinicia la conexión
+  if (st.conectado && Date.now() - st.ultimo > 7000) {
+    log("Sin datos por 7 s: reiniciando el enlace…", "warn");
+    st.ultimo = Date.now();
+    try { st.dev.gatt.disconnect(); } catch (_) {}
+  }
+  if (Date.now() - clima.ts > 10 * 60 * 1000 && clima.ts !== 0) actualizarClima();
+  pintarTextos();
   pintarEstado();
 }, 1000);
 
-// ============================ RENDER HUD (animado) ============================
-// Anillo con escala, marcas y brillo; valores suavizados hacia los reales
+// ============================ PANTALLA SIEMPRE ENCENDIDA ============================
+async function pedirWake() {
+  try {
+    if ("wakeLock" in navigator && !st.wake) {
+      st.wake = await navigator.wakeLock.request("screen");
+      st.wake.addEventListener("release", () => { st.wake = null; });
+    }
+  } catch (_) {}
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState !== "visible") return;
+  if (st.conectado || ride.activo) pedirWake();
+  if (st.dev && !st.conectado && !st.manual && !st.reintentando && !st.demo) reconectar();
+});
+
+// ============================ RENDER DE ANILLOS ============================
 function prepararCanvas(c) {
   const dpr = window.devicePixelRatio || 1;
   const w = c.clientWidth, h = c.clientHeight;
@@ -346,160 +746,181 @@ function prepararCanvas(c) {
   return { ctx, w, h };
 }
 
-function anillo(c, valor, max, color, marcas = 60) {
+function anillo(c, valor, max, color, marcas) {
   const { ctx, w, h } = prepararCanvas(c);
-  const cx = w / 2, cy = h / 2, r = Math.max(10, Math.min(w, h) / 2 - 16);
   if (w < 40 || h < 40) return;
-  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25, f = Math.max(0, Math.min(1, valor / max));
-  // marcas
+  const cx = w / 2, cy = h / 2, r = Math.max(10, Math.min(w, h) / 2 - 16);
+  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25, f = clamp(valor / max, 0, 1);
   for (let i = 0; i <= marcas; i++) {
-    const a = a0 + (a1 - a0) * i / marcas;
-    const mayor = i % 5 === 0;
-    const r1 = r + 6, r2 = r + (mayor ? 14 : 10);
-    ctx.strokeStyle = (i / marcas <= f) ? color : "rgba(95,127,163,.35)";
+    const a = a0 + (a1 - a0) * i / marcas, mayor = i % 5 === 0;
+    ctx.strokeStyle = (i / marcas <= f) ? color : col.linea;
     ctx.lineWidth = mayor ? 1.8 : 1;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
-    ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+    ctx.moveTo(cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6));
+    ctx.lineTo(cx + Math.cos(a) * (r + (mayor ? 14 : 10)), cy + Math.sin(a) * (r + (mayor ? 14 : 10)));
     ctx.stroke();
   }
-  // pista
   ctx.lineCap = "round"; ctx.lineWidth = 8;
-  ctx.strokeStyle = "rgba(34,184,255,.08)";
+  ctx.strokeStyle = col.linea;
   ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
-  // arco de valor con brillo
-  ctx.strokeStyle = color; ctx.lineWidth = 8;
-  ctx.shadowColor = color; ctx.shadowBlur = 18;
-  ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); ctx.stroke();
-  ctx.shadowBlur = 0;
-  // anillo interior fino
-  ctx.strokeStyle = "rgba(34,184,255,.18)"; ctx.lineWidth = 1;
-  if (r - 18 > 2) { ctx.beginPath(); ctx.arc(cx, cy, r - 18, 0, Math.PI * 2); ctx.stroke(); }
-}
-
-function horizonte(c, pt, rl) {
-  const { ctx, w, h } = prepararCanvas(c);
-  const cx = w / 2, cy = h / 2, R = Math.max(10, Math.min(w, h) / 2 - 16);
-  if (w < 40 || h < 40) return;
-  const roll = rl * Math.PI / 180, desp = pt * (R / 45);
-  ctx.save();
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
-  ctx.translate(cx, cy); ctx.rotate(-roll); ctx.translate(0, desp);
-  const g1 = ctx.createLinearGradient(0, -R * 2, 0, 0);
-  g1.addColorStop(0, "#06305e"); g1.addColorStop(1, "#0f5fa8");
-  const g2 = ctx.createLinearGradient(0, 0, 0, R * 2);
-  g2.addColorStop(0, "#5a3414"); g2.addColorStop(1, "#2a180a");
-  ctx.fillStyle = g1; ctx.fillRect(-R * 2, -R * 2, R * 4, R * 2);
-  ctx.fillStyle = g2; ctx.fillRect(-R * 2, 0, R * 4, R * 2);
-  ctx.strokeStyle = "rgba(230,246,255,.85)"; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(-R * 2, 0); ctx.lineTo(R * 2, 0); ctx.stroke();
-  ctx.strokeStyle = "rgba(230,246,255,.35)";
-  for (let k = -30; k <= 30; k += 10) {
-    if (!k) continue;
-    const y = -k * (R / 45);
-    ctx.beginPath(); ctx.moveTo(-R * .22, y); ctx.lineTo(R * .22, y); ctx.stroke();
+  if (f > 0.004) {
+    ctx.strokeStyle = color;
+    ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); ctx.stroke();
   }
-  ctx.restore();
-  // referencia fija
-  ctx.strokeStyle = "#ffc93d"; ctx.lineWidth = 2.5;
-  ctx.beginPath();
-  ctx.moveTo(cx - R * .5, cy); ctx.lineTo(cx - R * .18, cy);
-  ctx.moveTo(cx + R * .18, cy); ctx.lineTo(cx + R * .5, cy);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(34,184,255,.5)"; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
 }
 
 function frame() {
-  const v = st.vis, d = st.datos;
-  v.vel += ((d.vel ?? 0) - v.vel) * 0.18;
-  v.cad += ((d.cad ?? 0) - v.cad) * 0.18;
-  const zona = (f, colores) => colores[f < .4 ? 0 : f < .7 ? 1 : f < .85 ? 2 : 3];
-  const colVel = zona(v.vel / VEL_MAX, ["#1e90ff", "#4fc3ff", "#ffb020", "#ff4d4d"]);
-  const colCad = zona(v.cad / CAD_MAX, ["#0a5cff", "#22b8ff", "#cfeeff", "#ff4d4d"]);
-  v.pt  += ((d.pt ?? 0) - v.pt) * 0.2;
-  v.rl  += ((d.rl ?? 0) - v.rl) * 0.2;
+  const v = st.vis, fresco = (Date.now() - st.ultimo) <= UMBRAL_BT_MS * 1.5;
+  v.vel += ((fresco ? st.velKmh : 0) - v.vel) * 0.18;
+  v.cad += ((fresco ? (st.datos.cad || 0) : 0) - v.cad) * 0.18;
+  v.pot += ((fresco ? st.pot : 0) - v.pot) * 0.15;
   $("vVel").textContent = v.vel.toFixed(1);
   $("vCad").textContent = Math.round(v.cad);
-  anillo($("cVel"), v.vel, VEL_MAX, colVel, 60);
-  anillo($("cCad"), v.cad, CAD_MAX, colCad, 48);
-  horizonte($("cHor"), v.pt, v.rl);
+  $("vPot").textContent = Math.round(v.pot);
+  anillo($("cVel"), v.vel, VEL_MAX, col.ac, 60);
+  anillo($("cCad"), v.cad, CAD_MAX, col.tx, 48);
+  anillo($("cPot"), v.pot, POT_MAX, col.ac, 48);
   requestAnimationFrame(frame);
 }
 
 // ============================ BLUETOOTH ============================
+function alNotificar(ev) {
+  try { procesar(parsear(new TextDecoder().decode(ev.target.value))); }
+  catch (e) { log("Paquete ilegible: " + describirError(e), "warn"); }
+}
+
+async function abrirGatt() {
+  const srv = await st.dev.gatt.connect();
+  const svc = await srv.getPrimaryService(SERVICE_UUID);
+  const car = await svc.getCharacteristic(CHAR_UUID);
+  if (st.car) { try { st.car.removeEventListener("characteristicvaluechanged", alNotificar); } catch (_) {} }
+  st.car = car;
+  await car.startNotifications();
+  car.addEventListener("characteristicvaluechanged", alNotificar);
+  st.conectado = true; st.ultimo = Date.now(); st.tPrev = null;
+  pedirWake();
+}
+
+function alDesconectar() {
+  st.conectado = false;
+  pintarEstado();
+  if (st.manual) { log("Desconectado."); return; }
+  log("Conexión perdida. Reconectando…", "warn");
+  reconectar();
+}
+
+async function reconectar() {
+  if (st.reintentando || !st.dev) return;
+  st.reintentando = true; pintarEstado();
+  let espera = 800;
+  for (let i = 1; i <= 10 && !st.manual && !st.conectado; i++) {
+    await dormir(espera);
+    if (st.manual) break;
+    try { log(`Reconectando (${i}/10)…`); await abrirGatt(); log("Reconectado.", "ok"); break; }
+    catch (e) { log("Falló: " + describirError(e), "warn"); espera = Math.min(espera * 1.5, 6000); }
+  }
+  st.reintentando = false;
+  if (!st.conectado && !st.manual) log("No se pudo reconectar. Pulsa Conectar.", "err");
+  pintarEstado();
+}
+
 async function conectar() {
-  log("Verificando soporte Web Bluetooth…");
+  if (st.conectado || st.reintentando) {             // el mismo botón desconecta
+    st.manual = true;
+    try { if (st.dev && st.dev.gatt.connected) st.dev.gatt.disconnect(); } catch (_) {}
+    if (!st.conectado) log("Conexión cancelada.");
+    st.conectado = false; pintarEstado();
+    return;
+  }
   if (!navigator.bluetooth) { log("Este navegador no tiene Web Bluetooth. Abre la página con Bluefy.", "err"); return; }
   if (location.protocol !== "https:" && location.hostname !== "localhost")
     log("La página no está en https. Web Bluetooth necesita https (GitHub Pages).", "warn");
   if (st.demo) detenerDemo();
+  iniciarGPS();
+  st.manual = false;
   try {
-    log("Buscando " + NOMBRE_BLE + "… elige el dispositivo en la lista.");
+    if (st.dev) {                                    // misma bici: reconexión directa, sin lista
+      try { log("Reconectando al ESP32 anterior…"); await abrirGatt(); log("Conectado.", "ok"); pintarEstado(); return; }
+      catch (e) { log("No respondió. Elige el dispositivo en la lista.", "warn"); st.dev = null; }
+    }
+    log("Buscando BiciESP32… elige el dispositivo en la lista.");
     st.dev = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: [SERVICE_UUID] });
     log("Dispositivo elegido: " + (st.dev.name || "sin nombre"), "ok");
-    st.dev.addEventListener("gattserverdisconnected", () => {
-      st.conectado = false; log("Conexión perdida. Pulsa Conectar para reintentar.", "warn"); pintarEstado();
-    });
-    log("Conectando al servidor GATT…");
-    const srv = await st.dev.gatt.connect();
-    log("Buscando servicio CicloCom…");
-    const svc = await srv.getPrimaryService(SERVICE_UUID);
-    st.car = await svc.getCharacteristic(CHAR_UUID);
-    log("Activando notificaciones…");
-    await st.car.startNotifications();
-    st.car.addEventListener("characteristicvaluechanged", ev => procesar(parsear(new TextDecoder().decode(ev.target.value))));
-    st.conectado = true;
+    st.dev.addEventListener("gattserverdisconnected", alDesconectar);
+    await abrirGatt();
     log("Conectado. Recibiendo datos.", "ok");
-    pintarEstado();
   } catch (e) {
     st.conectado = false;
     log("No se conectó. " + describirError(e), "err");
     if (e && e.name === "NotFoundError") log("Revisa que el ESP32 esté encendido y anunciando BiciESP32.", "warn");
-    pintarEstado();
   }
+  pintarEstado();
 }
 
 async function recalibrar() {
   if (!st.car) return;
-  try { await st.car.writeValue(new TextEncoder().encode("c")); log("Recalibración solicitada.", "ok"); }
+  try { await st.car.writeValue(new TextEncoder().encode("c")); log("Recalibración solicitada: gira la rueda 3 vueltas.", "ok"); }
   catch (e) { log("No se envió el comando: " + describirError(e), "err"); }
 }
 
 // ============================ DEMO ============================
 function iniciarDemo() {
   if (st.conectado) { log("Desconecta antes de activar la demo.", "warn"); return; }
-  st.demo = true;
-  log("Demo activa: datos simulados, no son mediciones.", "warn");
+  st.demo = true; st.tPrev = null;
+  log("Demo activa: datos simulados, no son mediciones y no se graban.", "warn");
   st.demoTimer = setInterval(() => {
     const t = (st.t += 0.5);
     procesar(parsear(
-      `cad=${(75+12*Math.sin(t/5)).toFixed(0)},vel=${(18+6*Math.sin(t/9)).toFixed(2)},` +
-      `ax=${(0.1*Math.sin(t)).toFixed(2)},ay=${(0.05*Math.cos(t)).toFixed(2)},az=0.98,` +
-      `gx=${(2*Math.sin(t/3)).toFixed(1)},gy=${(1.5*Math.cos(t/4)).toFixed(1)},gz=0.4,` +
-      `tc=${(28+0.5*Math.sin(t/20)).toFixed(1)},a0c=${Math.round(2000+800*Math.sin(t))},` +
-      `a0r=${Math.round(2100+900*Math.cos(t))},sr=2,sc=2,sm=1,cal=2,cv=3,` +
-      `rl=${(4*Math.sin(t/6)).toFixed(1)},pt=${(2*Math.cos(t/7)).toFixed(1)}`));
+      `cad=${(75 + 12 * Math.sin(t / 5)).toFixed(0)},vel=${(18 + 6 * Math.sin(t / 9)).toFixed(2)},` +
+      `rl=${(4 * Math.sin(t / 6)).toFixed(1)},pt=${(3 * Math.cos(t / 7)).toFixed(1)},` +
+      `sr=2,sc=2,sm=1,cal=2,cv=3`));
   }, 500);
-  $("btnDemo").textContent = "Detener";
   pintarEstado();
 }
 
 function detenerDemo() {
-  clearInterval(st.demoTimer); st.demoTimer = null; st.demo = false;
-  $("btnDemo").textContent = "Demo";
+  clearInterval(st.demoTimer); st.demoTimer = null; st.demo = false; st.tPrev = null;
   log("Demo detenida.");
   pintarEstado();
 }
 
-// ============================ EVENTOS ============================
+// ============================ AJUSTES ============================
+function enlazarAjustes() {
+  $("cAuto").checked = !!cfg.auto;
+  $("cCirc").value = cfg.circ;
+  $("cMasa").value = cfg.masa;
+  $("cCda").value = String(cfg.cda);
+  $("cCrr").value = String(cfg.crr);
+  $("cPend").value = cfg.pend;
+  $("cAuto").onchange = e => { cfg.auto = e.target.checked; guardarCfg(); };
+  $("cCirc").onchange = e => { cfg.circ = clamp(parseFloat(e.target.value) || CFG_DEF.circ, 1.5, 2.8); e.target.value = cfg.circ; guardarCfg(); };
+  $("cMasa").onchange = e => { cfg.masa = clamp(parseFloat(e.target.value) || CFG_DEF.masa, 30, 250); e.target.value = cfg.masa; guardarCfg(); };
+  $("cCda").onchange  = e => { cfg.cda = parseFloat(e.target.value); guardarCfg(); };
+  $("cCrr").onchange  = e => { cfg.crr = parseFloat(e.target.value); guardarCfg(); };
+  $("cPend").onchange = e => { cfg.pend = e.target.value; guardarCfg(); };
+  $("cGps").onchange  = e => { cfg.gps = e.target.checked; guardarCfg(); if (cfg.gps) iniciarGPS(); else detenerGPS(); };
+}
+
+function abrirAjustes() { $("hoja").hidden = false; pintarGps(); cargarHistorial(); }
+function cerrarAjustes() { $("hoja").hidden = true; }
+
+// ============================ EVENTOS E INICIO ============================
 $("btnConectar").addEventListener("click", conectar);
+$("btnRec").addEventListener("click", () => { iniciarGPS(); ride.activo ? detenerRide() : iniciarRide(); });
+$("btnAjustes").addEventListener("click", abrirAjustes);
+$("btnCerrar").addEventListener("click", cerrarAjustes);
+$("hoja").addEventListener("click", e => { if (e.target === $("hoja")) cerrarAjustes(); });
 $("btnRecal").addEventListener("click", recalibrar);
 $("btnDemo").addEventListener("click", () => st.demo ? detenerDemo() : iniciarDemo());
 
+aplicarTema(cfg.tema);
+enlazarAjustes();
+dibujarTemas();
 log("CicloCom listo. Pulsa Conectar con el ESP32 encendido.");
 if (!navigator.bluetooth) log("Web Bluetooth no disponible en este navegador (usa Bluefy en iPhone).", "warn");
-pintarEstado();
+if (cfg.gps) iniciarGPS();
+setTimeout(() => { if (clima.ts === 0) actualizarClima(); }, 6000);   // sin GPS: clima de Bogotá
+pintarGps(); pintarTextos(); pintarEstado();
 requestAnimationFrame(frame);
 </script>
 </body>
