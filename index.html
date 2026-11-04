@@ -9,23 +9,39 @@
 <style>
   :root{
     --bg:#111827; --tx:#F3F4F6; --ac:#A3E635;
-    --panel:#1b2434; --linea:#3a4352; --tenue:#9aa0aa;
+    --bgLo:#06090f; --panel:#1b2434; --linea:#3a4352; --tenue:#9aa0aa;
+    --acS:rgba(163,230,53,.08); --acM:rgba(163,230,53,.28); --acL:rgba(163,230,53,.6);
     --sans:-apple-system,"Segoe UI",system-ui,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:var(--sans);
+  html,body{margin:0;height:100%;background:var(--bgLo);color:var(--tx);font-family:var(--sans);
             overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-  body{display:flex;flex-direction:column;height:100dvh;transition:background .25s}
+  body{display:flex;flex-direction:column;height:100dvh;
+       background:radial-gradient(1100px 640px at 50% -12%,var(--bg),var(--bgLo) 78%) fixed,var(--bgLo)}
+  /* rejilla HUD de fondo */
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.7;
+    background-image:linear-gradient(var(--acS) 1px,transparent 1px),linear-gradient(90deg,var(--acS) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%);
+            mask-image:radial-gradient(ellipse at center,#000 30%,transparent 85%)}
+  header,main,.barra{position:relative;z-index:1}
 
   /* ---------- Cabecera ---------- */
   header{display:flex;justify-content:space-between;align-items:center;gap:10px;
          padding:max(12px,env(safe-area-inset-top)) 18px 4px}
-  .marca{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:.38em;color:var(--ac)}
+  .logo{display:flex;align-items:center;gap:12px}
+  .reactor{width:22px;height:22px;border-radius:50%;flex:none;
+    background:radial-gradient(circle,#fff 0 16%,var(--ac) 32%,transparent 66%);
+    box-shadow:0 0 14px var(--ac),inset 0 0 0 2px var(--acL),0 0 0 3px var(--acM);animation:reac 2.6s ease-in-out infinite}
+  @keyframes reac{50%{box-shadow:0 0 24px var(--ac),inset 0 0 0 2px var(--acL),0 0 0 5px var(--acM)}}
+  .marca{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:.42em;color:var(--ac);
+         text-shadow:0 0 12px var(--acL)}
+  .marca span{color:var(--tenue);font-size:10px;letter-spacing:.2em;margin-left:12px;font-weight:400;text-shadow:none}
   .der{display:flex;align-items:center;gap:8px}
   .chip{font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:5px 10px;border-radius:999px;
-        border:1px solid var(--linea);color:var(--tenue);white-space:nowrap}
-  .chip.on{color:var(--ac);border-color:var(--ac)}
+        border:1px solid var(--linea);color:var(--tenue);white-space:nowrap;background:rgba(0,0,0,.25)}
+  .chip.on{color:var(--ac);border-color:var(--ac);box-shadow:0 0 10px var(--acM)}
   .chip.rec{color:var(--bg);background:var(--ac);border-color:var(--ac);animation:lat 1.2s infinite}
   .chip[hidden]{display:none}
   @keyframes lat{50%{opacity:.55}}
@@ -33,46 +49,67 @@
 
   /* ---------- Pantalla principal ---------- */
   main{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:12px;
-       padding:6px 14px;max-width:960px;width:100%;margin:0 auto}
-  .panel{background:var(--panel);border:1px solid var(--linea);border-radius:20px;padding:14px}
-  .fila{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px;align-items:center}
-  .anillo{position:relative;width:100%;aspect-ratio:1/1;max-width:280px;margin:0 auto}
+       padding:6px 14px;max-width:1400px;width:100%;margin:0 auto}
+  .panel{position:relative;border:1px solid var(--acM);border-radius:8px;padding:14px;
+         background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,.42));
+         box-shadow:inset 0 0 44px var(--acS),0 0 32px var(--acS)}
+  .panel::before,.panel::after{content:"";position:absolute;width:28px;height:28px;border:2px solid var(--ac);
+         pointer-events:none;filter:drop-shadow(0 0 6px var(--ac))}
+  .panel::before{left:-1px;top:-1px;border-right:none;border-bottom:none;border-top-left-radius:18px}
+  .panel::after{right:-1px;bottom:-1px;border-left:none;border-top:none;border-bottom-right-radius:18px}
+  .fila{display:grid;grid-template-columns:1fr 1.45fr 1fr 1fr;gap:10px;align-items:center}
+  .anillo{position:relative;width:100%;aspect-ratio:1/1;max-width:min(36vh,340px);margin:0 auto}
+  .anillo.vel{max-width:min(44vh,420px)}
   .anillo canvas{width:100%;height:100%;display:block}
   .centro{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
           justify-content:center;pointer-events:none}
-  .num{font-family:var(--mono);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-  .num.g{font-size:clamp(44px,9vw,84px)}
-  .num.m{font-size:clamp(28px,5.5vw,46px)}
+  .num{font-family:var(--mono);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--tx);
+       text-shadow:0 0 18px var(--acL)}
+  .num.g{font-size:clamp(44px,7vw,112px);text-shadow:0 0 26px var(--acL),0 0 4px var(--acM)}
+  .num.m{font-size:clamp(26px,3.6vw,56px)}
   .uni{font-family:var(--mono);font-size:11px;letter-spacing:.28em;color:var(--tenue);margin-top:6px}
-  .etq{position:absolute;bottom:2%;left:50%;transform:translateX(-50%);font-family:var(--mono);
+  .etq{position:absolute;bottom:1%;left:50%;transform:translateX(-50%);font-family:var(--mono);
        font-size:10px;letter-spacing:.24em;color:var(--tenue);white-space:nowrap}
 
+  /* lecturas del MPU */
+  .lect{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px;padding-top:10px;
+        border-top:1px dashed var(--acM)}
+  .lect div{text-align:center;min-width:0}
+  .lect small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.22em;color:var(--tenue)}
+  .lect b{display:block;font-family:var(--mono);font-size:19px;margin-top:3px;font-variant-numeric:tabular-nums;
+          text-shadow:0 0 10px var(--acL);white-space:nowrap}
+  .lect b i{font-style:normal;font-size:10px;color:var(--tenue);margin-left:2px}
+  .lect b.mal{color:#ff6b6b;text-shadow:none}
+
   .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-  .stat{background:var(--panel);border:1px solid var(--linea);border-radius:16px;padding:10px 12px}
+  .stat{min-width:0;background:rgba(0,0,0,.28);border:1px solid var(--acM);border-top:2px solid var(--ac);
+        border-radius:6px;padding:10px 12px;box-shadow:inset 0 0 20px var(--acS)}
   .stat small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--tenue);
               text-transform:uppercase}
-  .stat b{display:block;font-family:var(--mono);font-size:24px;margin-top:6px;font-variant-numeric:tabular-nums}
+  .stat b{display:block;font-family:var(--mono);font-size:24px;margin-top:6px;font-variant-numeric:tabular-nums;
+          white-space:nowrap;text-shadow:0 0 12px var(--acM)}
   .stat b i{font-style:normal;font-size:11px;color:var(--tenue);letter-spacing:.14em;margin-left:4px}
 
   /* ---------- Barra inferior ---------- */
   .barra{display:flex;gap:10px;padding:10px 14px max(14px,env(safe-area-inset-bottom));
-         max-width:960px;width:100%;margin:0 auto}
+         max-width:1400px;width:100%;margin:0 auto}
   .btn{flex:1;font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;
-       padding:14px 8px;border-radius:14px;border:1px solid var(--linea);color:var(--tx);
-       background:var(--panel);cursor:pointer;touch-action:manipulation;transition:transform .08s,opacity .2s;
-       white-space:nowrap}
+       padding:14px 8px;border-radius:10px;border:1px solid var(--acM);color:var(--tx);
+       background:rgba(0,0,0,.3);cursor:pointer;touch-action:manipulation;
+       transition:transform .08s,opacity .2s,box-shadow .2s;white-space:nowrap}
+  .btn:hover{box-shadow:0 0 16px var(--acM)}
   .btn:active{transform:scale(.97)}
   .btn:disabled{opacity:.35}
-  .btn.p{background:var(--ac);color:var(--bg);border-color:var(--ac);font-weight:700}
+  .btn.p{background:var(--ac);color:var(--bg);border-color:var(--ac);font-weight:700;box-shadow:0 0 16px var(--acM)}
   .btn.rec{border-color:var(--ac);color:var(--ac)}
   .btn.rec.on{background:var(--ac);color:var(--bg);font-weight:700}
 
   /* ---------- Ajustes (hoja) ---------- */
-  .hoja{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;
+  .hoja{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;
         justify-content:center}
   .hoja[hidden]{display:none}
   .hoja-in{width:100%;max-width:640px;max-height:92dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;
-           background:var(--bg);border:1px solid var(--linea);border-bottom:none;border-radius:24px 24px 0 0;
+           background:var(--bg);border:1px solid var(--acM);border-bottom:none;border-radius:24px 24px 0 0;
            padding:16px 18px max(22px,env(safe-area-inset-bottom))}
   .hoja-top{display:flex;justify-content:space-between;align-items:center}
   .hoja h2{margin:0;font-size:19px}
@@ -114,29 +151,43 @@
   .registro div{white-space:pre-wrap;word-break:break-word}
   .registro .ok{color:var(--ac)} .registro .warn{color:#ffb020} .registro .err{color:#ff6b6b}
 
-  /* ---------- iPhone: todo en una pantalla ---------- */
-  @media (max-width:620px){
-    .fila{grid-template-columns:1fr 1fr;row-gap:2px}
-    .anillo.vel{grid-column:1/-1;order:-1;max-width:230px}
-    .anillo{max-width:170px}
-    .stats{grid-template-columns:repeat(2,1fr);gap:8px}
-    .stat b{font-size:20px}
-    .marca{font-size:12px;letter-spacing:.3em}
-    .btn{font-size:12px;letter-spacing:.06em}
+  /* ---------- Pantallas grandes (Full HD y más) ---------- */
+  @media (min-width:1500px){
+    main,.barra{max-width:1700px}
+    .num.m{font-size:clamp(34px,3vw,64px)}
+    .stat b{font-size:30px}
+    .lect b{font-size:24px}
   }
-  @media (max-width:620px) and (max-height:740px){
-    .anillo.vel{max-width:190px}
-    .anillo{max-width:140px}
-    .stat{padding:7px 10px}
-    .stat b{margin-top:3px}
-    .panel{padding:8px 10px}
+
+  /* ---------- iPhone: todo en una pantalla ---------- */
+  @media (max-width:760px){
+    .marca span{display:none}
+    .marca{font-size:12px;letter-spacing:.3em}
+    main{gap:8px;padding:4px 10px}
+    .panel{padding:8px 8px 6px}
+    .fila{grid-template-columns:repeat(3,1fr);gap:4px}
+    .anillo.vel{grid-column:1/-1;order:-1;max-width:min(40vh,250px)}
+    .anillo{max-width:min(20vh,128px)}
+    .num.m{font-size:clamp(20px,6vw,28px)}
+    .uni{font-size:8px;letter-spacing:.18em;margin-top:2px}
+    .etq{font-size:8px;letter-spacing:.14em}
+    .lect{gap:4px;margin-top:6px;padding-top:6px}
+    .lect small{font-size:8px;letter-spacing:.12em}
+    .lect b{font-size:15px}
+    .stats{gap:6px}
+    .stat{padding:6px 6px}
+    .stat small{font-size:8px;letter-spacing:.1em}
+    .stat b{font-size:15px;margin-top:3px}
+    #vTiempo{font-size:13.5px;letter-spacing:-.02em}
+    .stat b i{font-size:8px;margin-left:2px;letter-spacing:.05em}
+    .btn{font-size:12px;letter-spacing:.06em}
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="marca">CICLOCOM</div>
+  <div class="logo"><div class="reactor"></div><div class="marca">CICLOCOM<span>TELEMETRÍA · ESP32</span></div></div>
   <div class="der">
     <span class="chip rec" id="chipRec" hidden>● REC</span>
     <span class="chip" id="chipBt">SIN CONEXIÓN</span>
@@ -162,6 +213,16 @@
         <div class="centro"><div class="num m" id="vPot">0</div><div class="uni">WATTS</div></div>
         <span class="etq">POTENCIA EST.</span>
       </div>
+      <div class="anillo">
+        <canvas id="cHor"></canvas>
+        <span class="etq">ACTITUD 3D</span>
+      </div>
+    </div>
+    <div class="lect">
+      <div><small>PITCH</small><b><span id="vPit">--</span><i>°</i></b></div>
+      <div><small>ROLL</small><b><span id="vRol">--</span><i>°</i></b></div>
+      <div><small>PENDIENTE</small><b><span id="vPend">--</span><i>%</i></b></div>
+      <div><small>MPU</small><b id="vMpu">--</b></div>
     </div>
   </section>
 
@@ -263,6 +324,7 @@ const CHAR_UUID    = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
 const CIRC_FW      = 2.30;      // circunferencia que usa el firmware (m)
 const UMBRAL_BT_MS = 4000;
 const VEL_MAX = 50, CAD_MAX = 120, POT_MAX = 400;
+const REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
 // Cada paleta: fondo, texto y acento
 const TEMAS = {
@@ -279,6 +341,7 @@ function guardarCfg() { try { localStorage.setItem("cc_cfg", JSON.stringify(cfg)
 // ============================ UTILIDADES ============================
 const $ = id => document.getElementById(id);
 const fmt = (v, d) => (typeof v === "number" && isFinite(v)) ? v.toFixed(d) : "--";
+const sg = (v, d) => (typeof v === "number" && isFinite(v)) ? (v >= 0 ? "+" : "") + v.toFixed(d) : "--";
 const p2 = n => String(n).padStart(2, "0");
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const dormir = ms => new Promise(r => setTimeout(r, ms));
@@ -319,14 +382,18 @@ function mezcla(a, b, t) {
   const A = hex2rgb(a), B = hex2rgb(b);
   return "#" + A.map((x, i) => Math.round(x + (B[i] - x) * t).toString(16).padStart(2, "0")).join("");
 }
+function rgba(h, a) { const c = hex2rgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
 
 function aplicarTema(id) {
   const T = TEMAS[id] || TEMAS.noche;
   const r = document.documentElement.style;
   col = { bg: T.bg, tx: T.tx, ac: T.ac,
-          panel: mezcla(T.bg, T.tx, 0.09), linea: mezcla(T.bg, T.tx, 0.28), tenue: mezcla(T.bg, T.tx, 0.68) };
+          panel: mezcla(T.bg, T.tx, 0.09), linea: mezcla(T.bg, T.tx, 0.28), tenue: mezcla(T.bg, T.tx, 0.68),
+          bgLo: mezcla(T.bg, "#000000", 0.62) };
   r.setProperty("--bg", col.bg); r.setProperty("--tx", col.tx); r.setProperty("--ac", col.ac);
+  r.setProperty("--bgLo", col.bgLo);
   r.setProperty("--panel", col.panel); r.setProperty("--linea", col.linea); r.setProperty("--tenue", col.tenue);
+  r.setProperty("--acS", rgba(col.ac, 0.09)); r.setProperty("--acM", rgba(col.ac, 0.3)); r.setProperty("--acL", rgba(col.ac, 0.62));
   const m = document.querySelector("meta[name=theme-color]");
   if (m) m.setAttribute("content", col.bg);
   cfg.tema = TEMAS[id] ? id : "noche";
@@ -353,7 +420,7 @@ const st = {
   demo: false, demoTimer: null, t: 0,
   ultimo: 0, datos: {}, velKmh: 0,
   tPrev: null, vPrev: 0, acel: 0, pot: 0, grade: 0, odo: 0,
-  vis: { vel: 0, cad: 0, pot: 0 }, wake: null
+  vis: { vel: 0, cad: 0, pot: 0, pt: 0, rl: 0 }, wake: null
 };
 const gps   = { id: null, lat: null, lon: null, acc: null, alt: null, altAcc: null, pts: [], estado: "apagado" };
 const clima = { temp: null, elev: null, ts: 0, lat: null, lon: null, ok: false };
@@ -433,12 +500,22 @@ function procesar(p) {
 }
 
 function pintarTextos() {
-  const alt = alturaActual();
+  const alt = alturaActual(), d = st.datos;
   $("vDist").textContent = (ride.dist / 1000).toFixed(2);
   $("vTiempo").textContent = hms(ride.tMov);
   $("vAlt").textContent = alt === null ? "--" : Math.round(alt);
   $("vTemp").textContent = fmt(clima.temp, 1);
-  $("vAng").textContent = `Inclinación  P ${fmt(st.datos.pt, 1)}°  ·  R ${fmt(st.datos.rl, 1)}°  ·  pendiente ${fmt(st.grade, 1)} %`;
+  // lecturas del MPU
+  const hay = (st.conectado || st.demo) && Date.now() - st.ultimo <= UMBRAL_BT_MS * 2;
+  $("vPit").textContent = hay ? sg(d.pt, 1) : "--";
+  $("vRol").textContent = hay ? sg(d.rl, 1) : "--";
+  $("vPend").textContent = hay ? sg(st.grade, 1) : "--";
+  const m = $("vMpu");
+  if (!hay) { m.textContent = "--"; m.className = ""; }
+  else if (d.sm !== 1) { m.textContent = "SIN MPU"; m.className = "mal"; }
+  else if ((d.cal ?? 0) !== 2) { m.textContent = "CALIB " + (d.cv ?? 0) + "/3"; m.className = ""; }
+  else { m.textContent = "LISTO"; m.className = ""; }
+  $("vAng").textContent = `Inclinación  P ${fmt(d.pt, 1)}°  ·  R ${fmt(d.rl, 1)}°  ·  pendiente ${fmt(st.grade, 1)} %`;
 }
 
 function pintarEstado() {
@@ -733,9 +810,9 @@ document.addEventListener("visibilitychange", () => {
   if (st.dev && !st.conectado && !st.manual && !st.reintentando && !st.demo) reconectar();
 });
 
-// ============================ RENDER DE ANILLOS ============================
+// ============================ RENDER HUD (estilo Stark) ============================
 function prepararCanvas(c) {
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 1));   // nítido también en monitores Full HD
   const w = c.clientWidth, h = c.clientHeight;
   if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
     c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
@@ -746,40 +823,181 @@ function prepararCanvas(c) {
   return { ctx, w, h };
 }
 
-function anillo(c, valor, max, color, marcas) {
+// Anillo tipo reactor: tubo con volumen, brillo, marcas y aros giratorios
+function anilloHUD(c, valor, max, color, op) {
   const { ctx, w, h } = prepararCanvas(c);
   if (w < 40 || h < 40) return;
-  const cx = w / 2, cy = h / 2, r = Math.max(10, Math.min(w, h) / 2 - 16);
-  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25, f = clamp(valor / max, 0, 1);
-  for (let i = 0; i <= marcas; i++) {
-    const a = a0 + (a1 - a0) * i / marcas, mayor = i % 5 === 0;
-    ctx.strokeStyle = (i / marcas <= f) ? color : col.linea;
-    ctx.lineWidth = mayor ? 1.8 : 1;
+  const t = REDUCE ? 0 : performance.now() / 1000;
+  const cx = w / 2, cy = h / 2, S = Math.min(w, h) / 2, r = S * 0.70;
+  const a0 = Math.PI * 0.75, a1 = Math.PI * 2.25, f = clamp(valor / max, 0, 1), af = a0 + (a1 - a0) * f;
+  const lw = S * 0.075, n = op.marcas || 60;
+
+  // resplandor central
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 0.98);
+  g.addColorStop(0, rgba(color, 0.22)); g.addColorStop(0.6, rgba(color, 0.06)); g.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r * 0.98, 0, Math.PI * 2); ctx.fill();
+
+  // aro exterior de segmentos, giratorio
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.22 * (op.dir || 1));
+  ctx.setLineDash([S * 0.11, S * 0.05]); ctx.lineWidth = 1.5; ctx.strokeStyle = rgba(color, 0.38);
+  ctx.beginPath(); ctx.arc(0, 0, S * 0.96, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  ctx.setLineDash([]);
+
+  // marcas
+  for (let i = 0; i <= n; i++) {
+    const a = a0 + (a1 - a0) * i / n, mayor = i % 5 === 0, on = i / n <= f;
+    const r1 = r + S * 0.08, r2 = r + S * (mayor ? 0.17 : 0.125);
+    ctx.strokeStyle = on ? color : rgba(col.tx, 0.22);
+    ctx.lineWidth = mayor ? 2 : 1;
+    if (on) { ctx.shadowColor = color; ctx.shadowBlur = 6; } else ctx.shadowBlur = 0;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(a) * (r + 6), cy + Math.sin(a) * (r + 6));
-    ctx.lineTo(cx + Math.cos(a) * (r + (mayor ? 14 : 10)), cy + Math.sin(a) * (r + (mayor ? 14 : 10)));
+    ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
     ctx.stroke();
   }
-  ctx.lineCap = "round"; ctx.lineWidth = 8;
-  ctx.strokeStyle = col.linea;
+  ctx.shadowBlur = 0;
+
+  // tubo base (hueco oscuro con borde)
+  ctx.lineCap = "round";
+  ctx.lineWidth = lw * 1.25; ctx.strokeStyle = rgba("#000000", 0.45);
   ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+  ctx.lineWidth = lw * 0.95; ctx.strokeStyle = rgba(color, 0.14);
+  ctx.beginPath(); ctx.arc(cx, cy, r, a0, a1); ctx.stroke();
+
   if (f > 0.004) {
-    ctx.strokeStyle = color;
-    ctx.beginPath(); ctx.arc(cx, cy, r, a0, a0 + (a1 - a0) * f); ctx.stroke();
+    // brillo exterior
+    ctx.save(); ctx.shadowColor = color; ctx.shadowBlur = S * 0.16;
+    ctx.lineWidth = lw; ctx.strokeStyle = color;
+    ctx.beginPath(); ctx.arc(cx, cy, r, a0, af); ctx.stroke(); ctx.restore();
+    // sombra del lado exterior (volumen)
+    ctx.lineWidth = lw * 0.3; ctx.strokeStyle = rgba(mezcla(color, "#000000", 0.5), 0.85);
+    ctx.beginPath(); ctx.arc(cx, cy, r + lw * 0.3, a0, af); ctx.stroke();
+    // reflejo del lado interior (aspecto de tubo)
+    ctx.lineWidth = lw * 0.3; ctx.strokeStyle = rgba(mezcla(color, "#ffffff", 0.7), 0.9);
+    ctx.beginPath(); ctx.arc(cx, cy, r - lw * 0.2, a0, af); ctx.stroke();
+    // punta incandescente
+    ctx.save(); ctx.shadowColor = "#ffffff"; ctx.shadowBlur = S * 0.12; ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(cx + Math.cos(af) * r, cy + Math.sin(af) * r, lw * 0.5, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  }
+
+  // aros interiores
+  ctx.lineWidth = 1; ctx.strokeStyle = rgba(color, 0.3);
+  ctx.beginPath(); ctx.arc(cx, cy, r - S * 0.13, 0, Math.PI * 2); ctx.stroke();
+  if (op.reactor) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate(-t * 0.55);
+    ctx.setLineDash([S * 0.05, S * 0.05]); ctx.lineWidth = 2; ctx.strokeStyle = rgba(color, 0.4);
+    ctx.beginPath(); ctx.arc(0, 0, r - S * 0.22, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+    ctx.setLineDash([]);
+  }
+}
+
+// Esfera de actitud 3D: horizonte con rejilla en perspectiva, escala de alabeo y bisel
+function horizonte3D(c, pt, rl, est) {
+  const { ctx, w, h } = prepararCanvas(c);
+  if (w < 40 || h < 40) return;
+  const cx = w / 2, cy = h / 2, S = Math.min(w, h) / 2, R = S * 0.74;
+  const roll = rl * Math.PI / 180, k = R / 45, desp = pt * k;
+  const t = REDUCE ? 0 : performance.now() / 1000;
+
+  // halo y bisel
+  ctx.save(); ctx.shadowColor = col.ac; ctx.shadowBlur = S * 0.14;
+  ctx.strokeStyle = rgba(col.ac, 0.9); ctx.lineWidth = S * 0.03;
+  ctx.beginPath(); ctx.arc(cx, cy, R + S * 0.05, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(t * 0.12);
+  ctx.strokeStyle = rgba(col.tx, 0.4); ctx.lineWidth = 1;
+  for (let i = 0; i < 72; i++) {
+    const a = i * Math.PI / 36, l = (i % 6 === 0) ? S * 0.1 : S * 0.05, r1 = R + S * 0.11;
+    ctx.beginPath(); ctx.moveTo(Math.cos(a) * r1, Math.sin(a) * r1);
+    ctx.lineTo(Math.cos(a) * (r1 + l), Math.sin(a) * (r1 + l)); ctx.stroke();
+  }
+  ctx.restore();
+
+  // contenido de la esfera
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+  ctx.translate(cx, cy); ctx.rotate(-roll); ctx.translate(0, desp);
+  const cielo = ctx.createLinearGradient(0, -R * 3, 0, 0);
+  cielo.addColorStop(0, mezcla(col.bg, "#000000", 0.78)); cielo.addColorStop(1, mezcla(col.bg, col.ac, 0.45));
+  ctx.fillStyle = cielo; ctx.fillRect(-R * 4, -R * 4, R * 8, R * 4);
+  const suelo = ctx.createLinearGradient(0, 0, 0, R * 3);
+  suelo.addColorStop(0, mezcla(col.bg, "#000000", 0.35)); suelo.addColorStop(1, mezcla(col.bg, "#000000", 0.92));
+  ctx.fillStyle = suelo; ctx.fillRect(-R * 4, 0, R * 8, R * 4);
+  // rejilla en perspectiva
+  ctx.lineWidth = 1;
+  for (let i = 1; i <= 10; i++) {
+    const y = R * 0.035 * i * i;
+    ctx.strokeStyle = rgba(col.ac, 0.1 + i * 0.035);
+    ctx.beginPath(); ctx.moveTo(-R * 4, y); ctx.lineTo(R * 4, y); ctx.stroke();
+  }
+  ctx.strokeStyle = rgba(col.ac, 0.28);
+  for (let j = -10; j <= 10; j++) {
+    ctx.beginPath(); ctx.moveTo(j * R * 0.04, 0); ctx.lineTo(j * R * 0.9, R * 3.5); ctx.stroke();
+  }
+  // línea de horizonte
+  ctx.save(); ctx.shadowColor = col.ac; ctx.shadowBlur = S * 0.08;
+  ctx.strokeStyle = col.ac; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-R * 4, 0); ctx.lineTo(R * 4, 0); ctx.stroke(); ctx.restore();
+  // escala de cabeceo
+  ctx.fillStyle = rgba(col.tx, 0.85); ctx.strokeStyle = rgba(col.tx, 0.7); ctx.lineWidth = 1.3;
+  ctx.font = `${Math.max(8, S * 0.085)}px ui-monospace,Menlo,monospace`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  [-30, -20, -10, 10, 20, 30].forEach(deg => {
+    const y = -deg * k, par = Math.abs(deg) % 20 === 0, a = par ? R * 0.3 : R * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(-a, y); ctx.lineTo(-a * 0.35, y); ctx.moveTo(a * 0.35, y); ctx.lineTo(a, y); ctx.stroke();
+    if (par) { ctx.fillText(String(Math.abs(deg)), -a - S * 0.1, y); ctx.fillText(String(Math.abs(deg)), a + S * 0.1, y); }
+  });
+  ctx.restore();
+
+  // sombreado de esfera (volumen 3D)
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.clip();
+  const g = ctx.createRadialGradient(cx - R * 0.35, cy - R * 0.45, R * 0.05, cx, cy, R * 1.05);
+  g.addColorStop(0, "rgba(255,255,255,0.28)"); g.addColorStop(0.3, "rgba(255,255,255,0.05)");
+  g.addColorStop(0.7, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(0,0,0,0.6)");
+  ctx.fillStyle = g; ctx.fillRect(cx - R, cy - R, R * 2, R * 2); ctx.restore();
+
+  // escala de alabeo fija y puntero que sigue al horizonte
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.strokeStyle = rgba(col.tx, 0.85); ctx.lineWidth = 1.5;
+  [-60, -45, -30, -20, -10, 0, 10, 20, 30, 45, 60].forEach(d => {
+    const a = d * Math.PI / 180, l = (d % 30 === 0) ? S * 0.1 : S * 0.06, r1 = R - S * 0.02, r2 = r1 - l;
+    ctx.beginPath(); ctx.moveTo(Math.sin(a) * r1, -Math.cos(a) * r1); ctx.lineTo(Math.sin(a) * r2, -Math.cos(a) * r2); ctx.stroke();
+  });
+  ctx.rotate(-roll); ctx.fillStyle = col.ac; ctx.shadowColor = col.ac; ctx.shadowBlur = S * 0.06;
+  ctx.beginPath(); ctx.moveTo(0, -(R - S * 0.14)); ctx.lineTo(-S * 0.05, -(R - S * 0.02)); ctx.lineTo(S * 0.05, -(R - S * 0.02));
+  ctx.closePath(); ctx.fill(); ctx.restore();
+
+  // símbolo fijo de la bici
+  ctx.save(); ctx.strokeStyle = col.ac; ctx.lineWidth = S * 0.03; ctx.lineCap = "round";
+  ctx.shadowColor = col.ac; ctx.shadowBlur = S * 0.06;
+  ctx.beginPath();
+  ctx.moveTo(cx - R * 0.6, cy); ctx.lineTo(cx - R * 0.22, cy); ctx.lineTo(cx - R * 0.12, cy + R * 0.1);
+  ctx.moveTo(cx + R * 0.6, cy); ctx.lineTo(cx + R * 0.22, cy); ctx.lineTo(cx + R * 0.12, cy + R * 0.1);
+  ctx.stroke();
+  ctx.fillStyle = col.ac; ctx.beginPath(); ctx.arc(cx, cy, S * 0.03, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+
+  // aviso de estado
+  if (est.sm !== 1 || est.cal !== 2) {
+    ctx.save(); ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = col.tx; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.font = `700 ${Math.max(9, S * 0.1)}px ui-monospace,Menlo,monospace`;
+    ctx.fillText(est.sm !== 1 ? "SIN MPU" : "CALIBRANDO", cx, cy + R * 0.5); ctx.restore();
   }
 }
 
 function frame() {
-  const v = st.vis, fresco = (Date.now() - st.ultimo) <= UMBRAL_BT_MS * 1.5;
+  const v = st.vis, d = st.datos, fresco = (Date.now() - st.ultimo) <= UMBRAL_BT_MS * 1.5;
   v.vel += ((fresco ? st.velKmh : 0) - v.vel) * 0.18;
-  v.cad += ((fresco ? (st.datos.cad || 0) : 0) - v.cad) * 0.18;
+  v.cad += ((fresco ? (d.cad || 0) : 0) - v.cad) * 0.18;
   v.pot += ((fresco ? st.pot : 0) - v.pot) * 0.15;
+  v.pt  += ((fresco ? (d.pt || 0) : 0) - v.pt) * 0.2;
+  v.rl  += ((fresco ? (d.rl || 0) : 0) - v.rl) * 0.2;
   $("vVel").textContent = v.vel.toFixed(1);
   $("vCad").textContent = Math.round(v.cad);
   $("vPot").textContent = Math.round(v.pot);
-  anillo($("cVel"), v.vel, VEL_MAX, col.ac, 60);
-  anillo($("cCad"), v.cad, CAD_MAX, col.tx, 48);
-  anillo($("cPot"), v.pot, POT_MAX, col.ac, 48);
+  anilloHUD($("cVel"), v.vel, VEL_MAX, col.ac, { marcas: 60, reactor: true, dir: 1 });
+  anilloHUD($("cCad"), v.cad, CAD_MAX, col.tx, { marcas: 48, dir: -1 });
+  anilloHUD($("cPot"), v.pot, POT_MAX, col.ac, { marcas: 48, dir: 1 });
+  horizonte3D($("cHor"), v.pt, v.rl, { sm: d.sm, cal: d.cal ?? 0 });
   requestAnimationFrame(frame);
 }
 
@@ -872,7 +1090,7 @@ function iniciarDemo() {
     const t = (st.t += 0.5);
     procesar(parsear(
       `cad=${(75 + 12 * Math.sin(t / 5)).toFixed(0)},vel=${(18 + 6 * Math.sin(t / 9)).toFixed(2)},` +
-      `rl=${(4 * Math.sin(t / 6)).toFixed(1)},pt=${(3 * Math.cos(t / 7)).toFixed(1)},` +
+      `rl=${(8 * Math.sin(t / 6)).toFixed(1)},pt=${(6 * Math.cos(t / 7)).toFixed(1)},` +
       `sr=2,sc=2,sm=1,cal=2,cv=3`));
   }, 500);
   pintarEstado();
